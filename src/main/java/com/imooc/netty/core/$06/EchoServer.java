@@ -67,7 +67,7 @@ public final class EchoServer {
             // 8. 绑定端口
             ChannelFuture f = serverBootstrap.bind(PORT).sync();
             // 9. 等待服务端监听端口关闭，这里会阻塞主线程
-//            f.channel().closeFuture().sync();
+            f.channel().closeFuture().sync();
         } finally {
             // 10. 优雅地关闭两个线程池
             bossGroup.shutdownGracefully();
