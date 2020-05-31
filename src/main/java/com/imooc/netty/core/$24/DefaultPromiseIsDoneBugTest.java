@@ -6,13 +6,18 @@ import io.netty.util.concurrent.Promise;
 public class DefaultPromiseIsDoneBugTest {
 
     public static void main(String[] args) {
-        Promise<?> defaultPromise = GlobalEventExecutor.INSTANCE.newPromise();
-        defaultPromise.setUncancellable();
-        boolean cancel = defaultPromise.cancel(false);
-        boolean isDone = defaultPromise.isDone();
+        // 创建一个promise
+        Promise<?> promise = GlobalEventExecutor.INSTANCE.newPromise();
+        // 设置为不可取消
+        promise.setUncancellable();
+        // 调用取消的方法
+        boolean cancel = promise.cancel(false);
+        // 调用是否完成的方法
+        boolean isDone = promise.isDone();
+        // 打印
         System.out.println(cancel);
         System.out.println(isDone);
-        System.out.println(defaultPromise.isCancelled());
+        System.out.println(promise.isCancelled());
     }
 
 }
