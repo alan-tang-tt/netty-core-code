@@ -1,26 +1,13 @@
-package com.imooc.netty.core.$26.common;
+package com.imooc.netty.core.$26.protocol.mongo;
 
+import com.imooc.netty.core.$26.protocol.ProtocolHeader;
 import io.netty.buffer.ByteBuf;
 
-public class DefaultGameMessageHeader implements GameMessageHeader {
+public class MongoProtocolHeader implements ProtocolHeader {
+
     private int version;
     private int opcode;
     private long requestId;
-
-    @Override
-    public int version() {
-        return version;
-    }
-
-    @Override
-    public int opcode() {
-        return opcode;
-    }
-
-    @Override
-    public long requestId() {
-        return requestId;
-    }
 
     @Override
     public void encode(ByteBuf buf) {
@@ -34,5 +21,17 @@ public class DefaultGameMessageHeader implements GameMessageHeader {
         this.version = buf.readInt();
         this.opcode = buf.readInt();
         this.requestId = buf.readLong();
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public int getOpcode() {
+        return opcode;
+    }
+
+    public long getRequestId() {
+        return requestId;
     }
 }
