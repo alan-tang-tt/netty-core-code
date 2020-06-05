@@ -1,6 +1,11 @@
 package com.imooc.netty.core.$26.server;
 
 import com.imooc.netty.core.$06.EchoServerHandler;
+import com.imooc.netty.core.$26.server.codec.MahjongFrameDecoder;
+import com.imooc.netty.core.$26.server.codec.MahjongFrameEncoder;
+import com.imooc.netty.core.$26.server.codec.MahjongRequestDecoder;
+import com.imooc.netty.core.$26.server.codec.MahjongResponseEncoder;
+import com.imooc.netty.core.$26.server.handler.MahjongServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -9,7 +14,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
-public class GameServer {
+public class MahjongServer {
 
     static final int PORT = Integer.parseInt(System.getProperty("port", "8080"));
 
@@ -36,10 +41,13 @@ public class GameServer {
                             // 可以添加多个子Handler
                             p.addLast(new LoggingHandler(LogLevel.INFO));
 
-//                            p.addLast(new StringDecoder());
-//                            p.addLast(new StringEncoder());
+                            p.addLast(new MahjongFrameDecoder());
+                            p.addLast(new MahjongFrameEncoder());
 
-//                            p.addLast(echoServerHandler);
+                            p.addLast(new MahjongRequestDecoder());
+                            p.addLast(new MahjongResponseEncoder());
+
+                            p.addLast(new MahjongServerHandler());
                         }
                     });
 
