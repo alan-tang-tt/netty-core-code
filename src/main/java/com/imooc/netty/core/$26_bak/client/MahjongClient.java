@@ -1,13 +1,14 @@
-package com.imooc.netty.core.$26.client;
+package com.imooc.netty.core.$26_bak.client;
 
-import com.imooc.netty.core.$26.client.handler.MahjongClientHandler;
-import com.imooc.netty.core.$26.common.msg.CreateTableRequest;
-import com.imooc.netty.core.$26.common.msg.LoginRequest;
-import com.imooc.netty.core.$26.common.codec.MahjongFrameDecoder;
-import com.imooc.netty.core.$26.common.codec.MahjongFrameEncoder;
-import com.imooc.netty.core.$26.common.codec.MahjongProtocolDecoder;
-import com.imooc.netty.core.$26.common.codec.MahjongProtocolEncoder;
-import com.imooc.netty.core.$26.util.MsgUtils;
+import com.alibaba.fastjson.JSON;
+import com.imooc.netty.core.$26_bak.client.codec.MahjongFrameDecoder;
+import com.imooc.netty.core.$26_bak.client.codec.MahjongFrameEncoder;
+import com.imooc.netty.core.$26_bak.client.codec.MahjongRequestEncoder;
+import com.imooc.netty.core.$26_bak.client.codec.MahjongResponseDecoder;
+import com.imooc.netty.core.$26_bak.common.protocol.domain.LoginRequest;
+import com.imooc.netty.core.$26_bak.common.protocol.domain.OperationEnum;
+import com.imooc.netty.core.$26_bak.common.protocol.mahjong.MahjongProtocolHeader;
+import com.imooc.netty.core.$26_bak.common.protocol.mahjong.RequestMahjongProtocol;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -20,9 +21,13 @@ import io.netty.handler.logging.LoggingHandler;
 
 import java.net.InetSocketAddress;
 
+/**
+ * @author: tangtong
+ * @date: 2020/6/5
+ */
 public class MahjongClient {
 
-    static final int PORT = Integer.parseInt(System.getProperty("port", "8080"));
+    private static final int PORT = 8080;
 
     public static void main(String[] args)  throws Exception {
 
@@ -41,24 +46,23 @@ public class MahjongClient {
                     pipeline.addLast(new MahjongFrameDecoder());
                     pipeline.addLast(new MahjongFrameEncoder());
 
-                    pipeline.addLast(new MahjongProtocolDecoder());
-                    pipeline.addLast(new MahjongProtocolEncoder());
+                    pipeline.addLast(new MahjongResponseDecoder());
+                    pipeline.addLast(new MahjongRequestEncoder());
 
-                    pipeline.addLast(new MahjongClientHandler());
+//                    pipeline.addLast(new MahjongClientHandler());
                 }
             });
 
             ChannelFuture future = bootstrap.connect(new InetSocketAddress(PORT)).sync();
 
-            // 登录
-            LoginRequest loginRequest = new LoginRequest();
-            loginRequest.setUsername("tt01");
-            loginRequest.setPassword("123456");
-            MsgUtils.send(future.channel(), loginRequest);
+            LoginRequest loginRequest = new LoginRequest("tt", "123456");
+            System.out.println("request: " + JSON.toJSONString(loginRequest));
 
-            // 创建桌子
-            CreateTableRequest createTableRequest = new CreateTableRequest();
-            MsgUtils.send(future.channel(), createTableRequest);
+            RequestMahjongProtocol requestMahjongProtocol = new RequestMahjongProtocol();
+            requestMahjongProtocol.setHeader(new MahjongProtocolHeader(OperationEnum.Login.getOpcode()));
+            requestMahjongProtocol.setBody(loginRequest);
+
+            future.channel().writeAndFlush(requestMahjongProtocol);
 
             future.channel().closeFuture().sync();
         } finally {

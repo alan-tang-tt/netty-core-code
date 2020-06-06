@@ -1,10 +1,10 @@
-package com.imooc.netty.core.$26.server;
+package com.imooc.netty.core.$26_bak.server;
 
-import com.imooc.netty.core.$26.common.codec.MahjongFrameDecoder;
-import com.imooc.netty.core.$26.common.codec.MahjongFrameEncoder;
-import com.imooc.netty.core.$26.common.codec.MahjongProtocolDecoder;
-import com.imooc.netty.core.$26.common.codec.MahjongProtocolEncoder;
-import com.imooc.netty.core.$26.server.handler.MahjongServerHandler;
+import com.imooc.netty.core.$26_bak.server.codec.MahjongFrameDecoder;
+import com.imooc.netty.core.$26_bak.server.codec.MahjongFrameEncoder;
+import com.imooc.netty.core.$26_bak.server.codec.MahjongRequestDecoder;
+import com.imooc.netty.core.$26_bak.server.codec.MahjongResponseEncoder;
+import com.imooc.netty.core.$26_bak.server.handler.MahjongServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -43,10 +43,10 @@ public class MahjongServer {
                             p.addLast(new MahjongFrameDecoder());
                             p.addLast(new MahjongFrameEncoder());
 
-                            p.addLast(new MahjongProtocolDecoder());
-                            p.addLast(new MahjongProtocolEncoder());
+                            p.addLast(new MahjongRequestDecoder());
+                            p.addLast(new MahjongResponseEncoder());
 
-                            p.addLast(new DefaultEventLoopGroup(), new MahjongServerHandler());
+                            p.addLast(new MahjongServerHandler());
                         }
                     });
 

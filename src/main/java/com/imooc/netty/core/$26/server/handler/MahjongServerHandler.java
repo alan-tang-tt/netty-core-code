@@ -1,33 +1,34 @@
 package com.imooc.netty.core.$26.server.handler;
 
-import com.alibaba.fastjson.JSON;
-import com.imooc.netty.core.$26.common.protocol.Request;
-import com.imooc.netty.core.$26.common.protocol.Response;
-import com.imooc.netty.core.$26.common.protocol.mahjong.RequestMahjongProtocol;
-import com.imooc.netty.core.$26.common.protocol.mahjong.ResponseMahjongProtocol;
-import io.netty.channel.ChannelHandler.Sharable;
+import com.imooc.netty.core.$26.common.protocol.*;
+import com.imooc.netty.core.$26.server.processor.MahjongProcessor;
+import com.imooc.netty.core.$26.server.processor.ProcessorEnum;
+import com.imooc.netty.core.$26.server.threadpool.MahjongEventExecutorGroup;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * 业务逻辑处理器
- */
-@Sharable
-public class MahjongServerHandler extends SimpleChannelInboundHandler<RequestMahjongProtocol> {
+@Slf4j
+public class MahjongServerHandler extends SimpleChannelInboundHandler<MahjongProtocol> {
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, RequestMahjongProtocol msg) throws Exception {
-        Request request = msg.getBody();
-        Response response = request.operate();
+    protected void channelRead0(ChannelHandlerContext ctx, MahjongProtocol mahjongProtocol) throws Exception {
+        // process header
+        MahjongProtocolHeader header = mahjongProtocol.getHeader();
 
-        ResponseMahjongProtocol responseMahjongProtocol = new ResponseMahjongProtocol();
-        responseMahjongProtocol.setHeader(msg.getHeader());
-        responseMahjongProtocol.setBody(response);
+        // we do nothing with header
 
-        System.out.println("receive request: " + JSON.toJSONString(msg));
-
-        System.out.println("send response: " + JSON.toJSONString(responseMahjongProtocol));
-
-        ctx.writeAndFlush(responseMahjongProtocol);
+        MahjongMsg body = mahjongProtocol.getBody();
+        if (body instanceof MahjongRequest) {
+            // 包装消息
+            ReceivedMessage receivedMessage = new ReceivedMessage();
+            receivedMessage.setRequest((MahjongRequest) body);
+            receivedMessage.setChannel(ctx.channel());
+            receivedMessage.setReceiveTime(System.currentTimeMillis());
+            // 扔到麻将线程池中执行
+            MahjongEventExecutorGroup.execute(receivedMessage);
+        } else {
+            log.error("error msgType, just discard, msgType={}", body.getClass().getSimpleName());
+        }
     }
 }
