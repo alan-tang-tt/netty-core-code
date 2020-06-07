@@ -20,7 +20,7 @@ public class CreateTableRequestProcessor implements MahjongProcessor<CreateTable
         Player[] players = new Player[table.getMaxPlayerNum()];
         players[0] = DataManager.currentPlayer();
         table.setPlayers(players);
-        table.setStatus(1);
+        table.setStatus(Table.STATUS_WAITING);
 
         // 数据缓存
         DataManager.bindChannelTable(DataManager.CURRENT_CHANNEL.get(), table);

@@ -6,6 +6,7 @@ import io.netty.channel.Channel;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.FastThreadLocal;
 
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,6 +22,8 @@ public class DataManager {
     private static final Map<Channel, ChannelBinding> CHANNEL_BINDING_MAP = new ConcurrentHashMap<>();
     private static final Map<Long, Table> TABLE_MAP = new ConcurrentHashMap<>();
     private static final Map<Long, Channel> PLAYER_ID_2_CHANNEL_MAP = new ConcurrentHashMap<>();
+
+    private static final Map<Long, LinkedList<Byte>> TABLE_CARDS_MAP = new ConcurrentHashMap<>();
 
     public static void bindPlayerChannel(Player player, Channel channel) {
         PLAYER_ID_2_CHANNEL_MAP.put(player.getId(), channel);
@@ -78,5 +81,14 @@ public class DataManager {
 
     public static void putTable(Table table) {
         TABLE_MAP.put(table.getId(), table);
+    }
+
+    public static void putCards(Long tableId, LinkedList<Byte> cards) {
+        TABLE_CARDS_MAP.put(tableId, cards);
+    }
+
+    public static Byte popCard(Long tableId) {
+        LinkedList<Byte> cards = TABLE_CARDS_MAP.get(tableId);
+        return cards.pop();
     }
 }

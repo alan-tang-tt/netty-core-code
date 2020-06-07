@@ -54,11 +54,11 @@ public class MahjongClient {
             LoginRequest loginRequest = new LoginRequest();
             loginRequest.setUsername("tt01");
             loginRequest.setPassword("123456");
-            MsgUtils.send(future.channel(), loginRequest);
+            MsgUtils.send(loginRequest);
 
             // 创建桌子
             CreateTableRequest createTableRequest = new CreateTableRequest();
-            MsgUtils.send(future.channel(), createTableRequest);
+            MsgUtils.send(createTableRequest);
 
             future.channel().closeFuture().sync();
         } finally {

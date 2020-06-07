@@ -2,7 +2,7 @@ package com.imooc.netty.core.$26.server.processor;
 
 import com.imooc.netty.core.$26.common.domain.Player;
 import com.imooc.netty.core.$26.common.domain.Table;
-import com.imooc.netty.core.$26.common.msg.EnterTableNotification;
+import com.imooc.netty.core.$26.common.msg.TableNotification;
 import com.imooc.netty.core.$26.common.msg.EnterTableRequest;
 import com.imooc.netty.core.$26.common.msg.EnterTableResponse;
 import com.imooc.netty.core.$26.common.msg.StartGameMsg;
@@ -38,9 +38,9 @@ public class EnterTableProcessor implements MahjongProcessor<EnterTableRequest> 
         MsgUtils.send(response);
 
         // 通知所有玩家有新玩家加入
-        EnterTableNotification notification = new EnterTableNotification();
+        TableNotification notification = new TableNotification();
         notification.setTable(table);
-        MsgUtils.send2Table(table, notification);
+        MsgUtils.sendTableNotification(notification, false);
 
         // 如果达到最大人数，直接开始游戏
         if (table.validPlayerNum() == table.getMaxPlayerNum()) {
