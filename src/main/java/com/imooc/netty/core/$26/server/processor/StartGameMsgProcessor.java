@@ -3,19 +3,15 @@ package com.imooc.netty.core.$26.server.processor;
 import com.imooc.netty.core.$26.common.domain.Player;
 import com.imooc.netty.core.$26.common.domain.Table;
 import com.imooc.netty.core.$26.common.msg.OperationNotification;
-import com.imooc.netty.core.$26.common.msg.OperationRequest;
 import com.imooc.netty.core.$26.common.msg.StartGameMsg;
 import com.imooc.netty.core.$26.common.msg.TableNotification;
 import com.imooc.netty.core.$26.server.data.DataManager;
 import com.imooc.netty.core.$26.util.CardUtils;
 import com.imooc.netty.core.$26.util.MsgUtils;
 import com.imooc.netty.core.$26.util.OperationUtils;
-import io.netty.util.concurrent.EventExecutor;
-import org.springframework.expression.Operation;
 
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.concurrent.TimeUnit;
+import java.util.Collections;
 
 public class StartGameMsgProcessor implements MahjongProcessor<StartGameMsg> {
     @Override
@@ -33,10 +29,10 @@ public class StartGameMsgProcessor implements MahjongProcessor<StartGameMsg> {
             // 发牌
             byte[] cards = new byte[14];
             for (int j = 0; j < 13; j++) {
-                cards[j] = DataManager.popCard(table.getId());
+                cards[j] = DataManager.pollFirstCard(table.getId());
             }
             if (i == 0) {
-                cards[13] = DataManager.popCard(table.getId());
+                cards[13] = DataManager.pollFirstCard(table.getId());
             }
             // 排序
             Arrays.sort(cards);
@@ -60,24 +56,10 @@ public class StartGameMsgProcessor implements MahjongProcessor<StartGameMsg> {
         operationNotification.setSequence(table.getSequence());
         // 首轮出牌的玩家多10秒，因为前端要播放发牌动画
         operationNotification.setDelayTime(OperationUtils.OPERATION_DEPLAY_TIME + 10);
+        DataManager.addTableWaitingOperationNotification(table.getId(), Collections.singletonList(operationNotification));
         MsgUtils.send2Table(table, operationNotification);
 
         // 设置倒计时，若倒计时结束出牌玩家还未出牌，则帮其自动出一张牌
-        EventExecutor executor = DataManager.CURRENT_EXECUTOR.get();
-        executor.schedule(() -> {
-            DataManager.CURRENT_TABLE_ID.set(table.getId());
-            DataManager.CURRENT_CHANNEL.remove();
-            try {
-                // 模拟一个OperationRequest
-                OperationRequest operationRequest = new OperationRequest();
-                operationRequest.setSequence(operationNotification.getSequence());
-                operationRequest.setOperation(OperationUtils.OPERATION_CHU);
-                operationRequest.setCards(new byte[]{table.getPlayers()[table.getChuPos()].lastCard()});
-                // 处理这个消息
-                MahjongProcessor.processMsg(operationRequest);
-            } finally {
-                DataManager.CURRENT_TABLE_ID.remove();
-            }
-        }, operationNotification.getDelayTime(), TimeUnit.SECONDS);
+        OperationRequestProcessor.chuCountDown(table, operationNotification.getDelayTime());
     }
 }

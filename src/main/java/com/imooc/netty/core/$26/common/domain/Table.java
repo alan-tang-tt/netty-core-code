@@ -1,12 +1,12 @@
 package com.imooc.netty.core.$26.common.domain;
 
-import com.alibaba.fastjson.JSON;
 import lombok.Data;
 
 @Data
-public class Table implements Cloneable{
+public class Table implements Cloneable {
     public static final int STATUS_WAITING = 1;
     public static final int STATUS_PLAYING = 2;
+    public static final int STATUS_GAME_OVER = 3;
     public static final int SUBSTATUS_WAITING_CHU = 1;
     public static final int SUBSTATUS_WAITING_OPERATE = 1;
 
@@ -72,5 +72,14 @@ public class Table implements Cloneable{
 
     public void moveToNext() {
         chuPos = (++chuPos) % players.length;
+    }
+
+    public void moveTo(int pos) {
+        chuPos = pos;
+    }
+
+    public Player nextPlayer(Player player) {
+
+        return null;
     }
 }

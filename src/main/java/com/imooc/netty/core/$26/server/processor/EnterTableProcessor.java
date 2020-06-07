@@ -14,6 +14,7 @@ public class EnterTableProcessor implements MahjongProcessor<EnterTableRequest> 
 
     @Override
     public void process(EnterTableRequest msg) {
+        Player player = DataManager.currentPlayer();
         // 检查桌子是否存在
         Table table = DataManager.getTableById(msg.getTableId());
         if (table == null) {
@@ -27,7 +28,9 @@ public class EnterTableProcessor implements MahjongProcessor<EnterTableRequest> 
         Player[] players = table.getPlayers();
         for (int i = 0; i < players.length; i++) {
             if (players[i] == null) {
-                players[i] = DataManager.currentPlayer();
+                players[i] = player;
+                player.setPos(i);
+                player.setDiamond(player.getDiamond()-1);
                 break;
             }
         }

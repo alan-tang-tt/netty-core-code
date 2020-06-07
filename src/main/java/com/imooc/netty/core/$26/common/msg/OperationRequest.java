@@ -7,5 +7,6 @@ import lombok.Data;
 public class OperationRequest implements MahjongRequest {
     private int sequence;
     private int operation;
+    private int operationPos;
     private byte[] cards;
 }

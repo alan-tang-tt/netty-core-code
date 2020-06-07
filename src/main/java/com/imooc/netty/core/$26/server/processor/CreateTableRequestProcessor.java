@@ -12,13 +12,16 @@ import lombok.extern.slf4j.Slf4j;
 public class CreateTableRequestProcessor implements MahjongProcessor<CreateTableRequest> {
     @Override
     public void process(CreateTableRequest msg) {
+        Player player = DataManager.currentPlayer();
         // 创建桌子
         Table table = new Table();
         table.setId(DataManager.CURRENT_TABLE_ID.get());
         table.setBaseScore(msg.getBaseScore());
         table.setMaxPlayerNum(msg.getPlayerNum());
         Player[] players = new Player[table.getMaxPlayerNum()];
-        players[0] = DataManager.currentPlayer();
+        players[0] = player;
+        player.setPos(0);
+        player.setDiamond(player.getDiamond()-1);
         table.setPlayers(players);
         table.setStatus(Table.STATUS_WAITING);
 

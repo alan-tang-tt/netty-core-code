@@ -1,9 +1,6 @@
 package com.imooc.netty.core.$26.server.processor;
 
-import com.imooc.netty.core.$26.common.msg.CreateTableRequest;
-import com.imooc.netty.core.$26.common.msg.EnterTableRequest;
-import com.imooc.netty.core.$26.common.msg.LoginRequest;
-import com.imooc.netty.core.$26.common.msg.StartGameMsg;
+import com.imooc.netty.core.$26.common.msg.*;
 import com.imooc.netty.core.$26.common.protocol.MahjongMsg;
 
 import java.util.HashMap;
@@ -17,6 +14,7 @@ public enum ProcessorEnum {
     CREATE_TABLE_REQUEST_PROCESSOR(CreateTableRequest.class, new CreateTableRequestProcessor()),
     ENTER_TABLE_REQUEST_PROCESSOR(EnterTableRequest.class, new EnterTableProcessor()),
     START_GAME_MSG_PROCESSOR(StartGameMsg.class, new StartGameMsgProcessor()),
+    OPERATION_REQUEST_PROCESSOR(OperationRequest.class, new OperationRequestProcessor()),
     ;
 
     private static Map<Class<? extends MahjongMsg>, MahjongProcessor> cache;

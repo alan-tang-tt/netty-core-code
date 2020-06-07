@@ -2,9 +2,7 @@ package com.imooc.netty.core.$26.server.processor;
 
 import com.imooc.netty.core.$26.common.domain.Player;
 import com.imooc.netty.core.$26.common.domain.Table;
-import com.imooc.netty.core.$26.common.msg.OperationNotification;
-import com.imooc.netty.core.$26.common.msg.OperationRequest;
-import com.imooc.netty.core.$26.common.msg.OperationResultNotification;
+import com.imooc.netty.core.$26.common.msg.*;
 import com.imooc.netty.core.$26.server.data.DataManager;
 import com.imooc.netty.core.$26.util.IdUtils;
 import com.imooc.netty.core.$26.util.MsgUtils;
@@ -14,8 +12,8 @@ import io.netty.util.concurrent.EventExecutor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -26,6 +24,9 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
         Long tableId = DataManager.CURRENT_TABLE_ID.get();
         Table table = DataManager.getTableById(tableId);
         if (table == null) {
+            return;
+        }
+        if (table.getStatus() == Table.STATUS_GAME_OVER) {
             return;
         }
         // 检查序列号是否一致，不一致表示过时的消息，直接丢弃
@@ -41,33 +42,56 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
             return;
         }
 
-        table.incrementSequence();
-
-        // 这里也可以使用策略模式优化，不过操作也不多，不优化问题也不大
-        switch (msg.getOperation()) {
-            case OperationUtils.OPERATION_CHU:
-                // 如果是出牌
-                chu(table, msg);
-                break;
-            case OperationUtils.OPERATION_CHI:
-                // 如果是吃
-                chi(table, msg);
-                break;
-            case OperationUtils.OPERATION_PENG:
-                // 如果是碰
-                peng(table, msg);
-                break;
-            case OperationUtils.OPERATION_GANG:
-                // 如果是杠
-                gang(table, msg);
-                break;
-            case OperationUtils.OPERATION_HU:
-                // 如果是胡
-                hu(table, msg);
-                break;
-            default:
-                log.error("error msg, msg={}", msg);
+        // 检查当前请求是否合法
+        if (!checkOperationAllowed(msg, table)) {
+            return;
         }
+
+        // 检查同一个玩家是否重复发消息
+        if (checkOperationDuplicated(msg, table)) {
+            return;
+        }
+
+        msg.setOperationPos(DataManager.currentPlayer().getPos());
+
+        // 添加到等待队列中，等待所有玩家都操作完了再决定执行哪个操作
+        // todo 这里有个优化的点，其实操作是有先后顺序的
+        // todo 比如，胡>杠>碰>吃，对于同一个操作离玩家越近优先级越高，比如两家都可以胡，下家>对家
+        // todo 所以，实际上并不需要所有玩家都操作完，只要高优先级的玩家操作了就可以直接下一步了
+        if (DataManager.addTableWaitingOperationRequest(tableId, msg)) {
+            // 所有玩家都操作了，则处理这些请求
+            dealOperationRequest(table);
+        }
+
+    }
+
+    private boolean checkOperationAllowed(OperationRequest msg, Table table) {
+        Player player = DataManager.currentPlayer();
+        // 检查是否有操作权限
+        List<OperationNotification> tableWaitingOperationNotification = DataManager.getTableWaitingOperationNotification(table.getId());
+        for (OperationNotification operationNotification : tableWaitingOperationNotification) {
+            if (operationNotification.getOperationPos() == player.getPos()) {
+                // 比如，一个人既可以碰也可以胡，那么，notification中的是 4|16=100|1000=1100
+                // 他选择的是胡，那么，request中的是 16=1000，此时两者做与操作，结果应等于后者
+                if ((operationNotification.getOperation() & msg.getOperation()) == msg.getOperation()) {
+                    return true;
+                }
+                break;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean checkOperationDuplicated(OperationRequest msg, Table table) {
+        // 检查是否重复操作
+        List<OperationRequest> tableWaitingOperationRequest = DataManager.getTableWaitingOperationRequest(table.getId());
+        for (OperationRequest operationRequest : tableWaitingOperationRequest) {
+            if (operationRequest.getOperationPos() == msg.getOperationPos()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void chu(Table table, OperationRequest msg) {
@@ -105,10 +129,13 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
             // 设置倒计时，倒计时结束后还没有人操作，则进行下一步操作
             final int preSequence = table.getSequence();
             EventExecutor executor = DataManager.CURRENT_EXECUTOR.get();
-            executor.schedule(()->{
+            executor.schedule(() -> {
                 // 不一致，说明有人操作了，丢弃此消息
                 if (preSequence == table.getSequence()) {
-                    moveToNext(table);
+                    // 也可能是部分人没操作导致了超时
+                    if (!checkPartOperation(table)) {
+                        moveToNext(table);
+                    }
                 }
             }, OperationUtils.OPERATION_DEPLAY_TIME, TimeUnit.SECONDS);
         } else {
@@ -117,32 +144,171 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
         }
     }
 
-    private void moveToNext(Table table) {
-        // 出牌光标移到下一个玩家
-        table.incrementSequence();
-        table.moveToNext();
-        // 下一个玩家摸一张牌，并通知他
-        Byte card = DataManager.popCard(table.getId());
-        if (card == null) {
-            // 牌摸完了，通知所有玩家游戏结束，并清理数据
-
-            return;
+    private boolean checkPartOperation(Table table) {
+        // 部分人操作导致超时
+        List<OperationRequest> tableWaitingOperationRequestList = DataManager.getTableWaitingOperationRequest(table.getId());
+        if (tableWaitingOperationRequestList != null && !tableWaitingOperationRequestList.isEmpty()) {
+            dealOperationRequest(table);
         }
 
+        return false;
+    }
 
+    private void dealOperationRequest(Table table) {
+        table.incrementSequence();
 
-        // 通知其出牌，并启动倒计时
+        List<OperationNotification> notificationList = DataManager.getTableWaitingOperationNotification(table.getId());
+        List<OperationRequest> requestList = DataManager.getTableWaitingOperationRequest(table.getId());
+        // 清除缓存，后面的出牌又要使用这两个list
+        DataManager.clearTableWaitingOperation(table.getId());
 
+        int allOperation = 0;
+        for (OperationNotification operationNotification : notificationList) {
+            allOperation |= operationNotification.getOperation();
+        }
 
+        int chuPos = table.getChuPos();
+        // 把requestList按座位号排序，按离出牌玩家从近到远排序
+        requestList.sort((o1, o2) -> {
+            int o1DeltaPos = o1.getOperationPos() - chuPos;
+            if (o1DeltaPos < 0) {
+                o1DeltaPos += table.getMaxPlayerNum();
+            }
+            int o2DeltaPos = o2.getOperationPos() - chuPos;
+            if (o2DeltaPos < 0) {
+                o2DeltaPos += table.getMaxPlayerNum();
+            }
+            return o1DeltaPos - o2DeltaPos;
+        });
+
+        // 检查是否是出牌
+        if ((allOperation & OperationUtils.OPERATION_CHU) == OperationUtils.OPERATION_CHU) {
+            for (OperationRequest operationRequest : requestList) {
+                if (operationRequest.getOperation() == OperationUtils.OPERATION_CHU) {
+                    chu(table, operationRequest);
+                    return;
+                }
+            }
+        }
+
+        // 检查是否包含胡
+        if ((allOperation & OperationUtils.OPERATION_HU) == OperationUtils.OPERATION_HU) {
+            // 从requestList找到第一个hu，让他胡
+            for (OperationRequest operationRequest : requestList) {
+                if (operationRequest.getOperation() == OperationUtils.OPERATION_HU) {
+                    hu(table, operationRequest);
+                    return;
+                }
+            }
+        }
+
+        // 检查是否包含杠
+        if ((allOperation & OperationUtils.OPERATION_GANG) == OperationUtils.OPERATION_GANG) {
+            // 从requestList找到第一个gang，让他杠
+            for (OperationRequest operationRequest : requestList) {
+                if (operationRequest.getOperation() == OperationUtils.OPERATION_GANG) {
+                    gang(table, operationRequest);
+                    return;
+                }
+            }
+        }
+
+        // 检查是否包含碰
+        if ((allOperation & OperationUtils.OPERATION_PENG) == OperationUtils.OPERATION_PENG) {
+            // 从requestList找到第一个peng，让他碰
+            for (OperationRequest operationRequest : requestList) {
+                if (operationRequest.getOperation() == OperationUtils.OPERATION_PENG) {
+                    peng(table, operationRequest);
+                    return;
+                }
+            }
+        }
+
+        // 以上都不包含，说明都是取消的操作，则移到到下一个人摸牌、出牌等
+        moveToNext(table);
+    }
+
+    private void moveToNext(Table table) {
+        // 出牌光标移到下一个玩家
+        table.moveToNext();
+        // 下一个玩家摸一张牌，并通知他
+        Byte card = DataManager.pollFirstCard(table.getId());
+        if (card == null) {
+            // 牌摸完了，通知所有玩家游戏结束，并清理数据
+            gameOver(table, null);
+            return;
+        }
+        grabCard(table, card);
+    }
+
+    /**
+     * 出牌倒计时
+     */
+    public static void chuCountDown(Table table, long delayTime) {
+        int sequence = table.getSequence();
+        Channel channel = DataManager.getChannelByPlayerId(table.chuPlayer().getId());
+        EventExecutor executor = DataManager.CURRENT_EXECUTOR.get();
+        executor.schedule(() -> {
+            DataManager.CURRENT_TABLE_ID.set(table.getId());
+            DataManager.CURRENT_CHANNEL.set(channel);
+            try {
+                // 模拟一个OperationRequest
+                OperationRequest operationRequest = new OperationRequest();
+                operationRequest.setSequence(sequence);
+                operationRequest.setOperation(OperationUtils.OPERATION_CHU);
+                operationRequest.setCards(new byte[]{table.getPlayers()[table.getChuPos()].lastCard()});
+                // 处理这个消息
+                MahjongProcessor.processMsg(operationRequest);
+            } finally {
+                DataManager.CURRENT_TABLE_ID.remove();
+                DataManager.CURRENT_CHANNEL.remove();
+            }
+        }, delayTime, TimeUnit.SECONDS);
+    }
+
+    private void gameOver(Table table, Player winner) {
+        table.setStatus(Table.STATUS_GAME_OVER);
+        TableNotification tableNotification = new TableNotification();
+        tableNotification.setTable(table);
+        // 可以看到其他玩家手里的牌
+        MsgUtils.sendTableNotification(tableNotification, false);
+
+        SettleNotification settleNotification = new SettleNotification();
+        if (winner != null) {
+            // 计算得分
+            Player[] players = table.getPlayers();
+            for (Player player : players) {
+                if (player.getId() == winner.getId()) {
+                    player.setScore(player.getScore() + table.getBaseScore() * 3);
+                } else {
+                    player.setScore(player.getScore() - table.getBaseScore());
+                }
+            }
+            settleNotification.setWinnerPos(winner.getPos());
+            settleNotification.setBaseScore(table.getBaseScore());
+        } else {
+            settleNotification.setWinnerPos(-1);
+            settleNotification.setBaseScore(table.getBaseScore());
+        }
+
+        // 发送结算消息
+        MsgUtils.send2Table(table, settleNotification);
+
+        // 清理资源
+        DataManager.clearTable(table);
     }
 
     private boolean checkOtherCanOperate(Player chuPlayer, byte chuCard, Table table) {
         // 如果有可以操作的玩家，通知所有玩家等待，并启动倒计时
         Player[] players = table.getPlayers();
         List<OperationNotification> notificationList = new ArrayList<>();
-        for (int i =0; i < players.length; i++) {
-            Player player = players[i];
-            if (player != null && player.getId() != chuPlayer.getId()) {
+        Player player = chuPlayer;
+        for (; ; ) {
+            player = table.nextPlayer(player);
+            if (player != null) {
+                if (player.getId() == chuPlayer.getId()) {
+                    break;
+                }
                 int operation = 0;
                 byte[] cards = player.getCards();
                 // 检查碰
@@ -150,23 +316,25 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
                     operation |= OperationUtils.OPERATION_PENG;
                 }
 
-                // 检查杠
+                // 检查暗杠（假设不带明杠）
                 if (player.containCards(chuCard, chuCard, chuCard)) {
                     operation |= OperationUtils.OPERATION_GANG;
                 }
 
-                // 检查胡（规则复杂，不便于公开，这里使用随机判断是否可胡）
+                // todo 检查胡（规则复杂，不便于公开，这里使用随机判断是否可胡）
                 if (IdUtils.randomInt(10) == 1) {
                     operation |= OperationUtils.OPERATION_HU;
                 }
 
-                OperationNotification notification = new OperationNotification();
-                notification.setSequence(table.getSequence());
-                notification.setOperation(operation);
-                notification.setOperationPos(i);
-                notification.setDelayTime(OperationUtils.OPERATION_DEPLAY_TIME);
+                if (operation != 0) {
+                    OperationNotification notification = new OperationNotification();
+                    notification.setSequence(table.getSequence());
+                    notification.setOperation(operation);
+                    notification.setOperationPos(player.getPos());
+                    notification.setDelayTime(OperationUtils.OPERATION_DEPLAY_TIME);
 
-                notificationList.add(notification);
+                    notificationList.add(notification);
+                }
             }
         }
 
@@ -179,24 +347,106 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
             notification.setDelayTime(OperationUtils.OPERATION_DEPLAY_TIME);
             // 其它字段没有意义
             MsgUtils.send2Table(table, notification);
+
+            // 记录下来这个list，后面要根据收到的消息做出不同的响应
+            DataManager.addTableWaitingOperationNotification(table.getId(), notificationList);
         }
 
         return !notificationList.isEmpty();
     }
 
-    private void chi(Table table, OperationRequest msg) {
-        throw new UnsupportedOperationException("chi not support");
-    }
-
     private void peng(Table table, OperationRequest msg) {
+        // 从自己手里移除两张一样的牌（这里没有做牌的合法性检验）
+        Player[] players = table.getPlayers();
+        Player player = players[msg.getOperationPos()];
+        player.removeCard(msg.getCards());
+        player.addPeng(msg.getCards()[0]);
 
+        // 出牌光标移到当前玩家
+        table.moveTo(msg.getOperationPos());
+
+        // 刷新牌桌
+        TableNotification tableNotification = new TableNotification();
+        tableNotification.setTable(table);
+        MsgUtils.sendTableNotification(tableNotification, true);
+
+        // 通知其出牌，并启动倒计时
+        OperationNotification operationNotification = new OperationNotification();
+        operationNotification.setOperation(OperationUtils.OPERATION_CHU);
+        operationNotification.setOperationPos(table.getChuPos());
+        operationNotification.setSequence(table.getSequence());
+        operationNotification.setDelayTime(OperationUtils.OPERATION_DEPLAY_TIME);
+        DataManager.addTableWaitingOperationNotification(table.getId(), Collections.singletonList(operationNotification));
+        MsgUtils.send2Table(table, operationNotification);
+
+        // 出牌倒计时
+        chuCountDown(table, OperationUtils.OPERATION_DEPLAY_TIME);
     }
 
     private void gang(Table table, OperationRequest msg) {
+        // 从自己手里移除三张一样的牌（这里没有做牌的合法性检验）
+        Player[] players = table.getPlayers();
+        Player player = players[msg.getOperationPos()];
+        player.removeCard(msg.getCards());
+        player.addGang(msg.getCards()[0]);
 
+        // 出牌光标移到当前玩家
+        table.moveTo(msg.getOperationPos());
+        // 摸一张牌
+        Byte card = DataManager.pollLastCard(table.getId());
+        if (card == null) {
+            // 牌摸完了，通知所有玩家游戏结束，并清理数据
+            gameOver(table, null);
+            return;
+        }
+        grabCard(table, card);
+    }
+
+    private void grabCard(Table table, Byte card) {
+        Player player = table.getPlayers()[table.getChuPos()];
+        player.addCard(card);
+
+        // 刷新牌桌
+        TableNotification tableNotification = new TableNotification();
+        tableNotification.setTable(table);
+        MsgUtils.sendTableNotification(tableNotification, true);
+
+        // todo 假设摸牌强制杠和胡如果有的话
+        if (IdUtils.randomInt(10) == 1) {
+            gameOver(table, player);
+            return;
+        }
+
+        // 检查暗杠（假设不带明杠）
+        if (player.containCards(card, card, card, card)) {
+            player.removeCard(card, card, card, card);
+            player.addGang(card);
+
+            // 摸一张牌
+            Byte grabCard = DataManager.pollLastCard(table.getId());
+            if (grabCard == null) {
+                // 牌摸完了，通知所有玩家游戏结束，并清理数据
+                gameOver(table, null);
+                return;
+            }
+            grabCard(table, grabCard);
+            return;
+        }
+
+        // 通知其出牌，并启动倒计时
+        OperationNotification operationNotification = new OperationNotification();
+        operationNotification.setOperation(OperationUtils.OPERATION_CHU);
+        operationNotification.setOperationPos(table.getChuPos());
+        operationNotification.setSequence(table.getSequence());
+        operationNotification.setDelayTime(OperationUtils.OPERATION_DEPLAY_TIME);
+        DataManager.addTableWaitingOperationNotification(table.getId(), Collections.singletonList(operationNotification));
+        MsgUtils.send2Table(table, operationNotification);
+
+        // 出牌倒计时
+        chuCountDown(table, OperationUtils.OPERATION_DEPLAY_TIME);
     }
 
     private void hu(Table table, OperationRequest msg) {
-
+        gameOver(table, table.getPlayers()[msg.getOperationPos()]);
     }
 }
