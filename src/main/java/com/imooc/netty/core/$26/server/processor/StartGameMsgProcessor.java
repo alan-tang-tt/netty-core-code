@@ -22,7 +22,7 @@ public class StartGameMsgProcessor implements MahjongProcessor<StartGameMsg> {
         // 游戏即将开始
         TableNotification tableNotification = new TableNotification();
         tableNotification.setTable(table);
-        MsgUtils.sendTableNotification(tableNotification.clone(), false);
+        MsgUtils.sendTableNotification(tableNotification, false);
 
         table.incrementZhuangPos();
 
@@ -52,7 +52,7 @@ public class StartGameMsgProcessor implements MahjongProcessor<StartGameMsg> {
 
         // 通知所有玩家
         table.setStatus(Table.STATUS_PLAYING);
-        MsgUtils.sendTableNotification(tableNotification.clone(), true);
+        MsgUtils.sendTableNotification(tableNotification, true);
 
         // 通知所有玩家等待庄家出牌，前端把光标指向出牌的位置，并提示此位置玩家出牌
         OperationNotification operationNotification = new OperationNotification();

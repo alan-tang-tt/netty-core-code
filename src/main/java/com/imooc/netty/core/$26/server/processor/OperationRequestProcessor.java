@@ -24,31 +24,42 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
         Long tableId = DataManager.CURRENT_TABLE_ID.get();
         Table table = DataManager.getTableById(tableId);
         if (table == null) {
+            log.error("table not exist");
+            return;
+        }
+        if (table.getStatus() == Table.STATUS_WAITING) {
+            log.error("table status is waiting");
             return;
         }
         if (table.getStatus() == Table.STATUS_GAME_OVER) {
+            log.error("table game is over");
             return;
         }
         // 检查序列号是否一致，不一致表示过时的消息，直接丢弃
         if (msg.getSequence() != table.getSequence()) {
+            log.error("msg sequence error, msgSequence={}, tableSequence={}", msg.getSequence(), table.getSequence());
             return;
         }
         // 检查桌子状态对不对
         int subStatus = table.getSubStatus();
         if (subStatus == Table.SUBSTATUS_WAITING_CHU && msg.getOperation() != OperationUtils.OPERATION_CHU) {
+            log.error("table substatus error, substatus={}, operation={}", subStatus, msg.getOperation());
             return;
         }
         if (subStatus == Table.SUBSTATUS_WAITING_OPERATE && msg.getOperation() == OperationUtils.OPERATION_CHU) {
+            log.error("table substatus error, substatus={}, operation={}", subStatus, msg.getOperation());
             return;
         }
 
         // 检查当前请求是否合法
         if (!checkOperationAllowed(msg, table)) {
+            log.error("illegal request for not allowed");
             return;
         }
 
         // 检查同一个玩家是否重复发消息
         if (checkOperationDuplicated(msg, table)) {
+            log.error("illegal request for duplicated");
             return;
         }
 
@@ -88,10 +99,10 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
         List<OperationRequest> tableWaitingOperationRequest = DataManager.getTableWaitingOperationRequest(table.getId());
         for (OperationRequest operationRequest : tableWaitingOperationRequest) {
             if (operationRequest.getOperationPos() == msg.getOperationPos()) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     private void chu(Table table, OperationRequest msg) {
@@ -126,6 +137,7 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
 
         // 检查其它玩家有没有可以吃碰杠胡这张牌，并通知对应的玩家
         if (checkOtherCanOperate(chuPlayer, chuCard, table)) {
+            table.setSubStatus(Table.SUBSTATUS_WAITING_OPERATE);
             // 设置倒计时，倒计时结束后还没有人操作，则进行下一步操作
             final int preSequence = table.getSequence();
             EventExecutor executor = DataManager.CURRENT_EXECUTOR.get();
@@ -149,6 +161,7 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
         List<OperationRequest> tableWaitingOperationRequestList = DataManager.getTableWaitingOperationRequest(table.getId());
         if (tableWaitingOperationRequestList != null && !tableWaitingOperationRequestList.isEmpty()) {
             dealOperationRequest(table);
+            return true;
         }
 
         return false;
@@ -245,6 +258,7 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
      * 出牌倒计时
      */
     public static void chuCountDown(Table table, long delayTime) {
+        table.setSubStatus(Table.SUBSTATUS_WAITING_CHU);
         int sequence = table.getSequence();
         Channel channel = DataManager.getChannelByPlayerId(table.chuPlayer().getId());
         EventExecutor executor = DataManager.CURRENT_EXECUTOR.get();
@@ -339,14 +353,17 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
         }
 
         if (!notificationList.isEmpty()) {
+            List<Long> notifcationPlayerIds = new ArrayList<>();
             for (OperationNotification notification : notificationList) {
-                MsgUtils.send2Player(players[notification.getOperationPos()], notification);
+                Player notificationPlayer = players[notification.getOperationPos()];
+                notifcationPlayerIds.add(notificationPlayer.getId());
+                MsgUtils.send2Player(notificationPlayer, notification);
             }
             // 针对全体玩家，再发送一个等待的消息，让没收到可操作消息的玩家知道要等待
             OperationNotification notification = new OperationNotification();
             notification.setDelayTime(OperationUtils.OPERATION_DEPLAY_TIME);
             // 其它字段没有意义
-            MsgUtils.send2Table(table, notification);
+            MsgUtils.send2TableExcept(table, notification, notifcationPlayerIds);
 
             // 记录下来这个list，后面要根据收到的消息做出不同的响应
             DataManager.addTableWaitingOperationNotification(table.getId(), notificationList);
@@ -364,6 +381,13 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
 
         // 出牌光标移到当前玩家
         table.moveTo(msg.getOperationPos());
+
+        // 通知所有玩家谁碰了牌
+        OperationResultNotification operationResultNotification = new OperationResultNotification();
+        operationResultNotification.setOperationPos(msg.getOperationPos());
+        operationResultNotification.setOperation(msg.getOperation());
+        operationResultNotification.setCards(msg.getCards());
+        MsgUtils.send2Table(table, operationResultNotification);
 
         // 刷新牌桌
         TableNotification tableNotification = new TableNotification();
@@ -389,6 +413,18 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
         Player player = players[msg.getOperationPos()];
         player.removeCard(msg.getCards());
         player.addGang(msg.getCards()[0]);
+
+        // 通知所有玩家谁杠了牌
+        OperationResultNotification operationResultNotification = new OperationResultNotification();
+        operationResultNotification.setOperationPos(msg.getOperationPos());
+        operationResultNotification.setOperation(msg.getOperation());
+        operationResultNotification.setCards(msg.getCards());
+        MsgUtils.send2Table(table, operationResultNotification);
+
+        // 刷新牌桌
+        TableNotification tableNotification = new TableNotification();
+        tableNotification.setTable(table);
+        MsgUtils.sendTableNotification(tableNotification, true);
 
         // 出牌光标移到当前玩家
         table.moveTo(msg.getOperationPos());
@@ -421,6 +457,16 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
         if (player.containCards(card, card, card, card)) {
             player.removeCard(card, card, card, card);
             player.addGang(card);
+
+            // 通知所有玩家谁杠了牌
+            OperationResultNotification operationResultNotification = new OperationResultNotification();
+            operationResultNotification.setOperationPos(player.getPos());
+            operationResultNotification.setOperation(OperationUtils.OPERATION_GANG);
+            operationResultNotification.setCards(new byte[] {card, card, card, card});
+            MsgUtils.send2Table(table, operationResultNotification);
+
+            // 刷新牌桌
+            MsgUtils.sendTableNotification(tableNotification, true);
 
             // 摸一张牌
             Byte grabCard = DataManager.pollLastCard(table.getId());

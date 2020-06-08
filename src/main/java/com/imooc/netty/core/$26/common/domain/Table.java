@@ -9,7 +9,7 @@ public class Table implements Cloneable {
     public static final int STATUS_PLAYING = 3;
     public static final int STATUS_GAME_OVER = 4;
     public static final int SUBSTATUS_WAITING_CHU = 1;
-    public static final int SUBSTATUS_WAITING_OPERATE = 1;
+    public static final int SUBSTATUS_WAITING_OPERATE = 2;
 
 
     /**
@@ -80,7 +80,6 @@ public class Table implements Cloneable {
     }
 
     public Player nextPlayer(Player player) {
-
-        return null;
+        return players[(player.getPos() + 1) % players.length];
     }
 }

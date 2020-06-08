@@ -3,12 +3,15 @@ package com.imooc.netty.core.$26.util;
 import com.alibaba.fastjson.JSON;
 import com.imooc.netty.core.$26.common.domain.Player;
 import com.imooc.netty.core.$26.common.domain.Table;
+import com.imooc.netty.core.$26.common.msg.OperationNotification;
 import com.imooc.netty.core.$26.common.msg.TableNotification;
 import com.imooc.netty.core.$26.common.protocol.MahjongMsg;
 import com.imooc.netty.core.$26.common.protocol.MahjongProtocol;
 import com.imooc.netty.core.$26.server.data.DataManager;
 import io.netty.channel.Channel;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 @Slf4j
 public class MsgUtils {
@@ -41,6 +44,7 @@ public class MsgUtils {
     }
 
     public static void sendTableNotification(TableNotification notification, boolean needHideOtherPlayerCards) {
+        notification = notification.clone();
         Table table = notification.getTable();
         Player[] players = table.getPlayers();
         for (Player player : players) {
@@ -67,6 +71,14 @@ public class MsgUtils {
                         cards[i] = 1;
                     }
                 }
+            }
+        }
+    }
+
+    public static void send2TableExcept(Table table, MahjongMsg msg, List<Long> exceptPlayerIds) {
+        for (Player player : table.getPlayers()) {
+            if (player != null && !exceptPlayerIds.contains(player.getId())) {
+                send2Player(player, msg);
             }
         }
     }

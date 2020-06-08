@@ -1,9 +1,7 @@
 package com.imooc.netty.core.$26.util;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
-import java.util.List;
 
 public class CardUtils {
     /**
@@ -11,14 +9,14 @@ public class CardUtils {
      * 牌型：万(0)、条(1)、筒(2)、字（东南西北中发白）(3)、花（春夏秋冬梅兰竹菊）(4)
      * 牌值：万条筒：123456789，东南西北中发白：1234567，春夏秋冬梅兰竹菊：12345678
      */
-    private static final byte WAN_MASK = 0x00;
-    private static final byte TIAO_MASK = 0x10;
-    private static final byte TONG_MASK = 0x20;
-    private static final byte ZI_MASK = 0x30;
-    private static final byte HUA_MASK = 0x40;
+    public static final byte WAN_MASK = 0x00;
+    public static final byte TIAO_MASK = 0x10;
+    public static final byte TONG_MASK = 0x20;
+    public static final byte ZI_MASK = 0x30;
+    public static final byte HUA_MASK = 0x40;
 
-    private static final byte COLOR_MASK = 0x70;
-    private static final byte VALUE_MASK = 0x0f;
+    public static final byte COLOR_MASK = 0x70;
+    public static final byte VALUE_MASK = 0x0f;
 
     public static byte color(byte card) {
         return (byte) (card & COLOR_MASK);
