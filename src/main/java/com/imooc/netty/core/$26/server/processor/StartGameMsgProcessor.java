@@ -17,7 +17,13 @@ public class StartGameMsgProcessor implements MahjongProcessor<StartGameMsg> {
     @Override
     public void process(StartGameMsg msg) {
         Table table = msg.getTable();
-        table.setStatus(Table.STATUS_PLAYING);
+        table.setStatus(Table.STATUS_STARTING);
+
+        // 游戏即将开始
+        TableNotification tableNotification = new TableNotification();
+        tableNotification.setTable(table);
+        MsgUtils.sendTableNotification(tableNotification.clone(), false);
+
         table.incrementZhuangPos();
 
         // 洗牌
@@ -45,9 +51,8 @@ public class StartGameMsgProcessor implements MahjongProcessor<StartGameMsg> {
         table.setSubStatus(Table.SUBSTATUS_WAITING_CHU);
 
         // 通知所有玩家
-        TableNotification tableNotification = new TableNotification();
-        tableNotification.setTable(table);
-        MsgUtils.sendTableNotification(tableNotification, true);
+        table.setStatus(Table.STATUS_PLAYING);
+        MsgUtils.sendTableNotification(tableNotification.clone(), true);
 
         // 通知所有玩家等待庄家出牌，前端把光标指向出牌的位置，并提示此位置玩家出牌
         OperationNotification operationNotification = new OperationNotification();

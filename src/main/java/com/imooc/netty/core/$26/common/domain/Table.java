@@ -5,8 +5,9 @@ import lombok.Data;
 @Data
 public class Table implements Cloneable {
     public static final int STATUS_WAITING = 1;
-    public static final int STATUS_PLAYING = 2;
-    public static final int STATUS_GAME_OVER = 3;
+    public static final int STATUS_STARTING = 2;
+    public static final int STATUS_PLAYING = 3;
+    public static final int STATUS_GAME_OVER = 4;
     public static final int SUBSTATUS_WAITING_CHU = 1;
     public static final int SUBSTATUS_WAITING_OPERATE = 1;
 

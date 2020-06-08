@@ -1,6 +1,9 @@
 package com.imooc.netty.core.$26.client.render;
 
+import com.imooc.netty.core.$26.common.msg.CreateTableResponse;
+import com.imooc.netty.core.$26.common.msg.EnterTableResponse;
 import com.imooc.netty.core.$26.common.msg.LoginResponse;
+import com.imooc.netty.core.$26.common.msg.TableNotification;
 import com.imooc.netty.core.$26.common.protocol.MahjongResponse;
 
 import java.util.HashMap;
@@ -11,6 +14,9 @@ import java.util.Map;
  */
 public enum RenderEnum {
     LOGIN_RESPONSE_RENDER(LoginResponse.class, new LoginResponseRender()),
+    CREATE_TABLE_RESPONSE_RENDER(CreateTableResponse.class, new CreateTableResponseRender()),
+    ENTER_TABLE_RESPONSE_RENDER(EnterTableResponse.class, new EnterTableResponseRender()),
+    TABLE_NOTIFICATION_RENDER(TableNotification.class, new TableNotificationRender()),
     ;
 
     private static Map<Class<? extends MahjongResponse>, MahjongRender> cache;

@@ -20,7 +20,7 @@ public class MsgUtils {
 
     public static void send(Channel channel, MahjongMsg msg) {
         if (channel != null && channel.isActive() && channel.isWritable()) {
-            log.info("send channel msg: {}", JSON.toJSONString(msg));
+//            log.info("send channel msg: {}", JSON.toJSONString(msg));
             channel.writeAndFlush(new MahjongProtocol<>(msg));
         } else {
             log.error("channel unavailable, msgType={}", msg.getClass().getSimpleName());

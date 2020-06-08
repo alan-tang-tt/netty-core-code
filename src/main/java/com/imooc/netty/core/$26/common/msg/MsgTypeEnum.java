@@ -9,6 +9,15 @@ public enum MsgTypeEnum {
     LOGIN_REQUEST(1, LoginRequest.class),
     LOGIN_RESPONSE(2, LoginResponse.class),
     CREATE_TABLE_REQUEST(3, CreateTableRequest.class),
+    CREATE_TABLE_RESPONSE(4, CreateTableResponse.class),
+    ENTER_TABLE_REQUEST(5, EnterTableRequest.class),
+    ENTER_TABLE_RESPONSE(6, EnterTableResponse.class),
+    OPERATION_REQUEST(7, OperationRequest.class),
+    OPERATION_NOTIFICATION(8, OperationNotification.class),
+    OPERATION_RESULT_NOTIFICATION(9, OperationResultNotification.class),
+    SETTLE_NOTIFICATION(10, SettleNotification.class),
+    START_GAME_MSG(11, StartGameMsg.class),
+    TABLE_NOTIFICATION(12, TableNotification.class),
     ;
 
     private static Map<Integer, Class<? extends MahjongMsg>> cmd2bodyTypeCache;

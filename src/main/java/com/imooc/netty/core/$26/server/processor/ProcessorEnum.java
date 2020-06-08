@@ -12,7 +12,7 @@ import java.util.Map;
 public enum ProcessorEnum {
     LOGIN_REQUEST_PROCESSOR(LoginRequest.class, new LoginRequestProcessor()),
     CREATE_TABLE_REQUEST_PROCESSOR(CreateTableRequest.class, new CreateTableRequestProcessor()),
-    ENTER_TABLE_REQUEST_PROCESSOR(EnterTableRequest.class, new EnterTableProcessor()),
+    ENTER_TABLE_REQUEST_PROCESSOR(EnterTableRequest.class, new EnterTableRequestProcessor()),
     START_GAME_MSG_PROCESSOR(StartGameMsg.class, new StartGameMsgProcessor()),
     OPERATION_REQUEST_PROCESSOR(OperationRequest.class, new OperationRequestProcessor()),
     ;

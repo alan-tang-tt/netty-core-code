@@ -10,7 +10,7 @@ import com.imooc.netty.core.$26.server.data.DataManager;
 import com.imooc.netty.core.$26.util.MsgUtils;
 import io.netty.util.concurrent.EventExecutor;
 
-public class EnterTableProcessor implements MahjongProcessor<EnterTableRequest> {
+public class EnterTableRequestProcessor implements MahjongProcessor<EnterTableRequest> {
 
     @Override
     public void process(EnterTableRequest msg) {
@@ -20,7 +20,15 @@ public class EnterTableProcessor implements MahjongProcessor<EnterTableRequest> 
         if (table == null) {
             EnterTableResponse response = new EnterTableResponse();
             response.setResult(false);
-            response.setMsg("桌子不存在");
+            response.setMsg("房间不存在");
+            MsgUtils.send(response);
+        }
+
+        // 检查桌子是不是满了
+        if (table.getPlayers().length == table.getMaxPlayerNum()) {
+            EnterTableResponse response = new EnterTableResponse();
+            response.setResult(false);
+            response.setMsg("房间已满，请加入其他房间");
             MsgUtils.send(response);
         }
 
@@ -38,12 +46,13 @@ public class EnterTableProcessor implements MahjongProcessor<EnterTableRequest> 
         // 返回响应
         EnterTableResponse response = new EnterTableResponse();
         response.setResult(true);
+        response.setTable(table);
         MsgUtils.send(response);
 
         // 通知所有玩家有新玩家加入
         TableNotification notification = new TableNotification();
         notification.setTable(table);
-        MsgUtils.sendTableNotification(notification, false);
+        MsgUtils.sendTableNotification(notification.clone(), false);
 
         // 如果达到最大人数，直接开始游戏
         if (table.validPlayerNum() == table.getMaxPlayerNum()) {
