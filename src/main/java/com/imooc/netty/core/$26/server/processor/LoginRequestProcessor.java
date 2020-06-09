@@ -24,8 +24,8 @@ public class LoginRequestProcessor implements MahjongProcessor<LoginRequest> {
             Player player = new Player();
             player.setId(IdUtils.randomLong());
             player.setName(msg.getUsername());
-            player.setScore(IdUtils.randomInt());
-            player.setDiamond(IdUtils.randomInt());
+            player.setScore(IdUtils.randomInt(100));
+            player.setDiamond(IdUtils.randomInt(100));
             loginResponse.setPlayer(player);
 
             // 登录成功，设置channel与player的关系

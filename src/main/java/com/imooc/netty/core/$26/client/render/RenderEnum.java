@@ -16,6 +16,7 @@ public enum RenderEnum {
     TABLE_NOTIFICATION_RENDER(TableNotification.class, new TableNotificationRender()),
     OPERATION_NOTIFICATION_RENDER(OperationNotification.class, new OperationNotificationRender()),
     OPERATION_RESULT_NOTIFICATION_RENDER(OperationResultNotification.class, new OperationResultNotificationRender()),
+    SETTLE_NOTIFICATION_RENDER(SettleNotification.class, new SettleNotificationRender()),
     ;
 
     private static Map<Class<? extends MahjongResponse>, MahjongRender> cache;

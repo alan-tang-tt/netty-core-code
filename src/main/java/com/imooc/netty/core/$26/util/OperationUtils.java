@@ -15,6 +15,6 @@ public class OperationUtils {
     /**
      * 操作倒计时
      */
-    public static final int OPERATION_DEPLAY_TIME = 5;
+    public static final int OPERATION_DEPLAY_TIME = 2;
 
 }

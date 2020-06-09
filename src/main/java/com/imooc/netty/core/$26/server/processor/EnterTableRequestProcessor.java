@@ -58,12 +58,7 @@ public class EnterTableRequestProcessor implements MahjongProcessor<EnterTableRe
 
         // 如果达到最大人数，直接开始游戏
         if (table.validPlayerNum() == table.getMaxPlayerNum()) {
-            EventExecutor executor = DataManager.CURRENT_EXECUTOR.get();
-            if (executor.inEventLoop()) {
-                startGame(table);
-            } else {
-                executor.execute(() -> startGame(table));
-            }
+            startGame(table);
         }
     }
 

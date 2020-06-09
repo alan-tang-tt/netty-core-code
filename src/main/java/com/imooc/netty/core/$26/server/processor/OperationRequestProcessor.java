@@ -142,12 +142,21 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
             final int preSequence = table.getSequence();
             EventExecutor executor = DataManager.CURRENT_EXECUTOR.get();
             executor.schedule(() -> {
-                // 不一致，说明有人操作了，丢弃此消息
-                if (preSequence == table.getSequence()) {
-                    // 也可能是部分人没操作导致了超时
-                    if (!checkPartOperation(table)) {
-                        moveToNext(table);
+                DataManager.CURRENT_TABLE_ID.set(table.getId());
+                DataManager.CURRENT_CHANNEL.set(channel);
+                DataManager.CURRENT_EXECUTOR.set(executor);
+                try {
+                    // 不一致，说明有人操作了，丢弃此消息
+                    if (preSequence == table.getSequence()) {
+                        // 也可能是部分人没操作导致了超时
+                        if (!checkPartOperation(table)) {
+                            moveToNext(table);
+                        }
                     }
+                } finally {
+                    DataManager.CURRENT_TABLE_ID.remove();
+                    DataManager.CURRENT_CHANNEL.remove();
+                    DataManager.CURRENT_EXECUTOR.remove();
                 }
             }, OperationUtils.OPERATION_DEPLAY_TIME, TimeUnit.SECONDS);
         } else {
@@ -265,6 +274,7 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
         executor.schedule(() -> {
             DataManager.CURRENT_TABLE_ID.set(table.getId());
             DataManager.CURRENT_CHANNEL.set(channel);
+            DataManager.CURRENT_EXECUTOR.set(executor);
             try {
                 // 模拟一个OperationRequest
                 OperationRequest operationRequest = new OperationRequest();
@@ -276,6 +286,7 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
             } finally {
                 DataManager.CURRENT_TABLE_ID.remove();
                 DataManager.CURRENT_CHANNEL.remove();
+                DataManager.CURRENT_EXECUTOR.remove();
             }
         }, delayTime, TimeUnit.SECONDS);
     }
@@ -293,7 +304,7 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
             Player[] players = table.getPlayers();
             for (Player player : players) {
                 if (player.getId() == winner.getId()) {
-                    player.setScore(player.getScore() + table.getBaseScore() * 3);
+                    player.setScore(player.getScore() + table.getBaseScore() * (table.getMaxPlayerNum() - 1));
                 } else {
                     player.setScore(player.getScore() - table.getBaseScore());
                 }
@@ -462,7 +473,7 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
             OperationResultNotification operationResultNotification = new OperationResultNotification();
             operationResultNotification.setOperationPos(player.getPos());
             operationResultNotification.setOperation(OperationUtils.OPERATION_GANG);
-            operationResultNotification.setCards(new byte[] {card, card, card, card});
+            operationResultNotification.setCards(new byte[]{card, card, card, card});
             MsgUtils.send2Table(table, operationResultNotification);
 
             // 刷新牌桌

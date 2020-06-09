@@ -38,7 +38,7 @@ public class MockClient {
 
     public static void login() {
         oneOperationExecute("\n请您登录，用户名和密码，以空格分隔：",
-                (line) -> line.contains(" "),
+                (line) -> line.split(" ").length == 2,
                 (line) -> {
                     String[] strings = line.split(" ");
                     LoginRequest loginRequest = new LoginRequest();
@@ -140,6 +140,19 @@ public class MockClient {
             System.out.println("\n您 " + operation(notification.getOperation()) + " 了 " + formatCards(notification.getCards()));
         } else {
             System.out.println("\n玩家" + (notification.getOperationPos() + 1) + " " + operation(notification.getOperation()) + " 了 " + formatCards(notification.getCards()));
+        }
+    }
+
+    public static void settleNotification(SettleNotification notification) {
+        if (player.getPos() == notification.getWinnerPos()) {
+            System.out.println("恭喜您，赢钱了赢钱了~~");
+        }
+        for (Player player : table.getPlayers()) {
+            if (player.getPos() == notification.getWinnerPos()) {
+                System.out.println("玩家" +(player.getPos()+1)+ ": " + notification.getBaseScore() * (table.getMaxPlayerNum()-1));
+            } else {
+                System.out.println("玩家" +(player.getPos()+1)+ ": " + notification.getBaseScore());
+            }
         }
     }
 
@@ -267,6 +280,7 @@ public class MockClient {
                     break;
                 } else {
                     System.out.println("错误的输入，请重新输入：");
+                    System.out.println(tips);
                 }
             }
         });
@@ -305,6 +319,7 @@ public class MockClient {
                     break;
                 } else {
                     System.out.println("错误的输入，请重新输入：");
+                    System.out.println(tips);
                 }
             }
         });
