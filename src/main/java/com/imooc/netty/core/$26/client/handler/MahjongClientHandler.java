@@ -25,7 +25,11 @@ public class MahjongClientHandler extends SimpleChannelInboundHandler<MahjongPro
             MahjongResponse response = (MahjongResponse) body;
             MahjongRender render = RenderEnum.getRender(response.getClass());
             if (render != null) {
-                render.render(response);
+                try {
+                    render.render(response);
+                } catch (Exception e) {
+                    log.error("渲染时出错", e);
+                }
             } else {
                 log.error("not found response render, msgType={}", body.getClass().getSimpleName());
             }

@@ -76,7 +76,9 @@ public class MsgUtils {
     }
 
     public static void send2TableExcept(Table table, MahjongMsg msg, List<Long> exceptPlayerIds) {
+        System.out.println(exceptPlayerIds);
         for (Player player : table.getPlayers()) {
+            System.out.println(player);
             if (player != null && !exceptPlayerIds.contains(player.getId())) {
                 send2Player(player, msg);
             }

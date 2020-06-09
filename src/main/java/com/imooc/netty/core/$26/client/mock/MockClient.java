@@ -66,7 +66,7 @@ public class MockClient {
                 (line) -> {
                     CreateTableRequest request = new CreateTableRequest();
                     request.setBaseScore(5);
-                    request.setPlayerNum(2);
+                    request.setPlayerNum(3);
                     return request;
                 },
                 "\n请输入您要加入的房间号：",
@@ -103,16 +103,37 @@ public class MockClient {
 
     public static void tableNotification(TableNotification notification) {
         table = notification.getTable();
+        for (Player p : table.getPlayers()) {
+            if (p.getId() == player.getId()) {
+                player = p;
+            }
+        }
         if (table.getStatus() == Table.STATUS_WAITING) {
             System.out.println("\n有人进入房间，刷新房间信息如下：\n" + table);
         } else if (table.getStatus() == Table.STATUS_STARTING) {
             System.out.println("\n所有玩家已就绪，游戏即将开始~~");
         } else if (table.getStatus() == Table.STATUS_PLAYING) {
-            System.out.println("\n刷新牌局信息：");
+            int operation = notification.getOperation();
+            if (operation == OperationUtils.OPERATION_CHU) {
+                System.out.println("\n刷新牌局信息（出）：");
+            }
+            if (operation == OperationUtils.OPERATION_PENG) {
+                System.out.println("\n刷新牌局信息（碰）：");
+            }
+            if (operation == OperationUtils.OPERATION_GANG) {
+                System.out.println("\n刷新牌局信息（杠）：");
+            }
+            if (operation == OperationUtils.OPERATION_GRAB) {
+                System.out.println("\n刷新牌局信息（摸）：");
+            }
+            if (operation == OperationUtils.OPERATION_HU) {
+                System.out.println("\n刷新牌局信息（胡）：");
+            }
             printCardsOf(table);
         } else {
             System.out.println("\n游戏已结束！");
-            afterLoginResponse();
+            System.out.println("\n各玩家手牌信息：");
+            printCardsOf(table);
         }
     }
 
@@ -123,8 +144,61 @@ public class MockClient {
             } else {
                 // 其它操作有这么几种组合：
                 // 碰 取消、杠 取消、胡 取消、碰 杠 取消、 碰 胡 取消、 杠 胡 取消、碰 杠 胡 取消
-                System.out.println("\n请您操作：xxxxxxxxxx");
+                String tips = "\n请您操作：";
+                int i = 1;
+                List<MsgBuilder> msgBuilderList = new ArrayList<>();
+                if ((notification.getOperation() & OperationUtils.OPERATION_PENG) == OperationUtils.OPERATION_PENG) {
+                    tips += i++ + ". 碰 ";
+                    msgBuilderList.add(line -> {
+                        OperationRequest operationRequest = new OperationRequest();
+                        operationRequest.setOperation(OperationUtils.OPERATION_PENG);
+                        operationRequest.setOperationPos(player.getPos());
+                        operationRequest.setSequence(notification.getSequence());
+                        operationRequest.setCards(new byte[]{notification.getCard(), notification.getCard()});
+                        return operationRequest;
+                    });
+                }
+                if ((notification.getOperation() & OperationUtils.OPERATION_GANG) == OperationUtils.OPERATION_GANG) {
+                    tips += i++ + ". 杠 ";
+                    msgBuilderList.add(line -> {
+                        OperationRequest operationRequest = new OperationRequest();
+                        operationRequest.setOperation(OperationUtils.OPERATION_GANG);
+                        operationRequest.setOperationPos(player.getPos());
+                        operationRequest.setSequence(notification.getSequence());
+                        operationRequest.setCards(new byte[]{notification.getCard(), notification.getCard(), notification.getCard()});
+                        return operationRequest;
+                    });
+                }
+                if ((notification.getOperation() & OperationUtils.OPERATION_HU) == OperationUtils.OPERATION_HU) {
+                    tips += i++ + ". 胡 ";
+                    msgBuilderList.add(line -> {
+                        OperationRequest operationRequest = new OperationRequest();
+                        operationRequest.setOperation(OperationUtils.OPERATION_HU);
+                        operationRequest.setOperationPos(player.getPos());
+                        operationRequest.setSequence(notification.getSequence());
+                        operationRequest.setCards(new byte[]{notification.getCard()});
+                        return operationRequest;
+                    });
+                }
+                tips += i + ". 取消（倒计时 " + notification.getDelayTime() + "秒）";
+                msgBuilderList.add(line -> {
+                    OperationRequest operationRequest = new OperationRequest();
+                    operationRequest.setOperation(OperationUtils.OPERATION_CANCEL);
+                    operationRequest.setOperationPos(player.getPos());
+                    operationRequest.setSequence(notification.getSequence());
+                    operationRequest.setCards(new byte[]{notification.getCard()});
+                    return operationRequest;
+                });
 
+                if (i == 2) {
+                    twoOperationExecute(tips, "", null, msgBuilderList.get(0), "", null, msgBuilderList.get(1));
+                }
+                if (i == 3) {
+                    threeOperationExecute(tips, "", null, msgBuilderList.get(0), "", null, msgBuilderList.get(1), "", null, msgBuilderList.get(2));
+                }
+                if (i == 4) {
+                    fourOperationExecute(tips, "", null, msgBuilderList.get(0), "", null, msgBuilderList.get(1), "", null, msgBuilderList.get(2), "", null, msgBuilderList.get(3));
+                }
             }
         } else {
             if (notification.getOperation() == OperationUtils.OPERATION_CHU) {
@@ -145,15 +219,18 @@ public class MockClient {
 
     public static void settleNotification(SettleNotification notification) {
         if (player.getPos() == notification.getWinnerPos()) {
-            System.out.println("恭喜您，赢钱了赢钱了~~");
+            System.out.println("\n恭喜您，赢钱了赢钱了~~");
+        } else {
+            System.out.println("\n不好意思，输了哟，再接再厉~~");
         }
         for (Player player : table.getPlayers()) {
             if (player.getPos() == notification.getWinnerPos()) {
-                System.out.println("玩家" +(player.getPos()+1)+ ": " + notification.getBaseScore() * (table.getMaxPlayerNum()-1));
+                System.out.println("玩家" + (player.getPos() + 1) + ": +" + notification.getBaseScore() * (table.getMaxPlayerNum() - 1));
             } else {
-                System.out.println("玩家" +(player.getPos()+1)+ ": " + notification.getBaseScore());
+                System.out.println("玩家" + (player.getPos() + 1) + ": -" + notification.getBaseScore());
             }
         }
+        afterLoginResponse();
     }
 
     private static String operation(int operation) {
@@ -174,41 +251,43 @@ public class MockClient {
 
     private static void chu(OperationNotification notification) {
         oneOperationExecute("\n请您出牌（倒计时 " + notification.getDelayTime() + "秒）：", line -> {
-            char[] chars = line.toCharArray();
-            if (chars.length != 2) {
-                return false;
-            }
-            if (chars[0] < '1' || chars[0] > '9') {
-                return false;
-            }
-            if (chars[1] != '万' && chars[1] != '条' && chars[1] != '筒') {
-                return false;
-            }
-            byte value = Byte.parseByte(String.valueOf(chars[0]));
-            byte color = chars[1] == '万' ? CardUtils.WAN_MASK :
-                    chars[1] == '条' ? CardUtils.TIAO_MASK : CardUtils.TONG_MASK;
-
-            byte card = (byte) (value | color);
-            for (byte playerCard : player.getCards()) {
-                if (card == playerCard) {
-                    return true;
+            try {
+                int num = Integer.parseInt(line);
+                if (num < 1 || num > 14) {
+                    return false;
                 }
-            }
+                int i = 1;
+                for (byte card : player.getCards()) {
+                    if (card != 0) {
+                        if (i++ == num) {
+                            return true;
+                        }
+                    }
+                }
 
+            } catch (Exception e) {
+                // just ignore
+            }
             return false;
         }, line -> {
-            char[] chars = line.toCharArray();
-            byte value = Byte.parseByte(String.valueOf(chars[0]));
-            byte color = chars[1] == '万' ? CardUtils.WAN_MASK :
-                    chars[1] == '条' ? CardUtils.TIAO_MASK : CardUtils.TONG_MASK;
+            int num = Integer.parseInt(line);
 
-            byte card = (byte) (value | color);
+            byte card = 0;
+            int i = 1;
+            for (byte c : player.getCards()) {
+                if (c != 0) {
+                    if (i++ == num) {
+                        card = c;
+                        break;
+                    }
+                }
+            }
 
             OperationRequest operationRequest = new OperationRequest();
             operationRequest.setOperation(OperationUtils.OPERATION_CHU);
             operationRequest.setOperationPos(player.getPos());
             operationRequest.setCards(new byte[]{card});
-            operationRequest.setSequence(table.getSequence());
+            operationRequest.setSequence(notification.getSequence());
             return operationRequest;
         }, true);
     }
@@ -228,9 +307,10 @@ public class MockClient {
     private static String formatCards(byte[] cards) {
         Arrays.sort(cards);
         List<String> list = new ArrayList<>();
+        int i =1;
         for (byte card : cards) {
             if (card != 0) {
-                list.add(toChinese(card));
+                list.add(toChinese(card) + "(" + i++ + ")");
             }
         }
         return list.toString();
@@ -261,7 +341,7 @@ public class MockClient {
     }
 
     private static void oneOperationExecute(String tips, Conditin condition, MsgBuilder msgBuilder) {
-        oneOperationExecute(tips, condition, msgBuilder, false);
+        oneOperationExecute(tips, condition, msgBuilder, true);
     }
 
     private static void oneOperationExecute(String tips, Conditin condition, MsgBuilder msgBuilder, boolean async) {
@@ -280,7 +360,6 @@ public class MockClient {
                     break;
                 } else {
                     System.out.println("错误的输入，请重新输入：");
-                    System.out.println(tips);
                 }
             }
         });
@@ -319,7 +398,126 @@ public class MockClient {
                     break;
                 } else {
                     System.out.println("错误的输入，请重新输入：");
-                    System.out.println(tips);
+                }
+            }
+        });
+    }
+
+    private static void threeOperationExecute(String tips, String tips1, Conditin condition1, MsgBuilder msgBuilder1,
+                                              String tips2, Conditin condition2, MsgBuilder msgBuilder2,
+                                              String tips3, Conditin condition3, MsgBuilder msgBuilder3) {
+        executorGroup.execute(() -> {
+            System.out.println(tips);
+            boolean flag1 = false;
+            boolean flag2 = false;
+            boolean flag3 = false;
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                if (!flag1 && !flag2 && !flag3 && "1".equals(line)) {
+                    flag1 = true;
+                    System.out.println(tips1);
+                    if (condition1 == null) {
+                        MahjongMsg msg = msgBuilder1.build(line);
+                        MsgUtils.send(channel, msg);
+                        break;
+                    }
+                } else if (!flag1 && !flag2 && !flag3 && "2".equals(line)) {
+                    flag2 = true;
+                    System.out.println(tips2);
+                    if (condition2 == null) {
+                        MahjongMsg msg = msgBuilder2.build(line);
+                        MsgUtils.send(channel, msg);
+                        break;
+                    }
+                } else if (!flag1 && !flag2 && !flag3 && "3".equals(line)) {
+                    flag2 = true;
+                    System.out.println(tips3);
+                    if (condition3 == null) {
+                        MahjongMsg msg = msgBuilder3.build(line);
+                        MsgUtils.send(channel, msg);
+                        break;
+                    }
+                } else if (flag1 && condition1.run(line)) {
+                    MahjongMsg msg = msgBuilder1.build(line);
+                    MsgUtils.send(channel, msg);
+                    break;
+                } else if (flag2 && condition2.run(line)) {
+                    MahjongMsg msg = msgBuilder2.build(line);
+                    MsgUtils.send(channel, msg);
+                    break;
+                } else if (flag3 && condition3.run(line)) {
+                    MahjongMsg msg = msgBuilder3.build(line);
+                    MsgUtils.send(channel, msg);
+                    break;
+                } else {
+                    System.out.println("错误的输入，请重新输入：");
+                }
+            }
+        });
+    }
+
+    private static void fourOperationExecute(String tips, String tips1, Conditin condition1, MsgBuilder msgBuilder1,
+                                             String tips2, Conditin condition2, MsgBuilder msgBuilder2,
+                                             String tips3, Conditin condition3, MsgBuilder msgBuilder3,
+                                             String tips4, Conditin condition4, MsgBuilder msgBuilder4) {
+        executorGroup.execute(() -> {
+            System.out.println(tips);
+            boolean flag1 = false;
+            boolean flag2 = false;
+            boolean flag3 = false;
+            boolean flag4 = false;
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                if (!flag1 && !flag2 && !flag3 && !flag4 && "1".equals(line)) {
+                    flag1 = true;
+                    System.out.println(tips1);
+                    if (condition1 == null) {
+                        MahjongMsg msg = msgBuilder1.build(line);
+                        MsgUtils.send(channel, msg);
+                        break;
+                    }
+                } else if (!flag1 && !flag2 && !flag3 && !flag4 && "2".equals(line)) {
+                    flag2 = true;
+                    System.out.println(tips2);
+                    if (condition2 == null) {
+                        MahjongMsg msg = msgBuilder2.build(line);
+                        MsgUtils.send(channel, msg);
+                        break;
+                    }
+                } else if (!flag1 && !flag2 && !flag3 && !flag4 && "3".equals(line)) {
+                    flag2 = true;
+                    System.out.println(tips3);
+                    if (condition3 == null) {
+                        MahjongMsg msg = msgBuilder3.build(line);
+                        MsgUtils.send(channel, msg);
+                        break;
+                    }
+                } else if (!flag1 && !flag2 && !flag3 && !flag4 && "4".equals(line)) {
+                    flag2 = true;
+                    System.out.println(tips4);
+                    if (condition4 == null) {
+                        MahjongMsg msg = msgBuilder4.build(line);
+                        MsgUtils.send(channel, msg);
+                        break;
+                    }
+                } else if (flag1 && condition1.run(line)) {
+                    MahjongMsg msg = msgBuilder1.build(line);
+                    MsgUtils.send(channel, msg);
+                    break;
+                } else if (flag2 && condition2.run(line)) {
+                    MahjongMsg msg = msgBuilder2.build(line);
+                    MsgUtils.send(channel, msg);
+                    break;
+                } else if (flag3 && condition3.run(line)) {
+                    MahjongMsg msg = msgBuilder3.build(line);
+                    MsgUtils.send(channel, msg);
+                    break;
+                } else if (flag4 && condition4.run(line)) {
+                    MahjongMsg msg = msgBuilder4.build(line);
+                    MsgUtils.send(channel, msg);
+                    break;
+                } else {
+                    System.out.println("错误的输入，请重新输入：");
                 }
             }
         });

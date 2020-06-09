@@ -10,11 +10,12 @@ public class OperationUtils {
     public static final int OPERATION_PENG = 4;
     public static final int OPERATION_GANG = 8;
     public static final int OPERATION_HU = 16;
-    public static final int OPERATION_CANCEL = 32;
+    public static final int OPERATION_GRAB = 32;
+    public static final int OPERATION_CANCEL = 64;
 
     /**
      * 操作倒计时
      */
-    public static final int OPERATION_DEPLAY_TIME = 2;
+    public static final int OPERATION_DEPLAY_TIME = 200;
 
 }

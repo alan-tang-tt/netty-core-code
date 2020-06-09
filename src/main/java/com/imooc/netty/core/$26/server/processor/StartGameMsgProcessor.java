@@ -60,7 +60,7 @@ public class StartGameMsgProcessor implements MahjongProcessor<StartGameMsg> {
         operationNotification.setOperationPos(table.getChuPos());
         operationNotification.setSequence(table.getSequence());
         // 首轮出牌的玩家多10秒，因为前端要播放发牌动画
-        operationNotification.setDelayTime(OperationUtils.OPERATION_DEPLAY_TIME + 2);
+        operationNotification.setDelayTime(OperationUtils.OPERATION_DEPLAY_TIME + 15);
         DataManager.addTableWaitingOperationNotification(table.getId(), Collections.singletonList(operationNotification));
         MsgUtils.send2Table(table, operationNotification);
 

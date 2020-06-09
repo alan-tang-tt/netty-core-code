@@ -11,6 +11,10 @@ import lombok.Data;
 @Data
 public class TableNotification implements MahjongNotification, Cloneable {
     private Table table;
+    /**
+     * 什么操作导致了刷新桌子
+     */
+    private int operation;
 
     @Override
     public TableNotification clone() {

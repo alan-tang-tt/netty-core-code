@@ -24,4 +24,8 @@ public class OperationNotification implements MahjongNotification {
      * 通知发出时桌子的序列号
      */
     private int sequence;
+    /**
+     * 哪张牌触发的操作
+     */
+    private byte card;
 }

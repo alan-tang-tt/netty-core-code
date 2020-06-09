@@ -45,6 +45,9 @@ public class EnterTableRequestProcessor implements MahjongProcessor<EnterTableRe
             }
         }
 
+        // 绑定桌子到channel上
+        DataManager.bindChannelTable(DataManager.CURRENT_CHANNEL.get(), table);
+
         // 返回响应
         EnterTableResponse response = new EnterTableResponse();
         response.setResult(true);
