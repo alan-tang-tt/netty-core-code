@@ -68,6 +68,7 @@ public class MahjongEventExecutorGroup extends MultithreadEventExecutorGroup {
         final Long finalTableId = tableId;
 
         TABLE_EVENT_EXECUTOR_GROUP.execute(() -> {
+            log.info("process msg, channel={}, table={}, thread={}", channel.id(), finalTableId, Thread.currentThread().getId());
             DataManager.CURRENT_CHANNEL.set(channel);
             DataManager.CURRENT_TABLE_ID.set(finalTableId);
 
