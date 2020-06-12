@@ -474,7 +474,7 @@ public class OperationRequestProcessor implements MahjongProcessor<OperationRequ
             return;
         }
 
-        // 检查暗杠（假设不带明杠）
+        // 检查暗杠
         if (player.containCards(card, card, card, card)) {
             player.removeCard(card, card, card, card);
             player.addGang(card);
