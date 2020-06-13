@@ -1,0 +1,13 @@
+syntax = "proto3";
+option java_package = "com.imooc.netty.core.$997.proto";
+option java_multiple_files = true;
+
+message LoginRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    bool result = 1;
+    string message = 2;
+}
