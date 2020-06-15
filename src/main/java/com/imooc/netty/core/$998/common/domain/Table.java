@@ -11,7 +11,6 @@ public class Table implements Cloneable {
     public static final int SUBSTATUS_WAITING_CHU = 1;
     public static final int SUBSTATUS_WAITING_OPERATE = 2;
 
-
     /**
      * 桌子id
      */
