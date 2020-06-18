@@ -35,7 +35,6 @@ public class MahjongEventExecutorGroup extends MultithreadEventExecutorGroup {
             } finally {
                 DataManager.CURRENT_EXECUTOR.remove();
             }
-
         });
     }
 
