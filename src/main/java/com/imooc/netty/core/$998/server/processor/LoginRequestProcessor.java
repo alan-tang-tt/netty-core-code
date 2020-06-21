@@ -15,10 +15,8 @@ public class LoginRequestProcessor implements MahjongProcessor<LoginRequest> {
         if (msg.getUsername() == null || "".equals(msg.getUsername())) {
             loginResponse.setResult(false);
             loginResponse.setMsg("用户名不能为空");
-        } else if (!msg.getUsername().startsWith("tt")) {
-            loginResponse.setResult(false);
-            loginResponse.setMsg("用户名错误");
-        } else {
+        }  else {
+            // 任何用户名皆可通过
             loginResponse.setResult(true);
             // 假设从数据库或者redis中读取到的
             Player player = new Player();

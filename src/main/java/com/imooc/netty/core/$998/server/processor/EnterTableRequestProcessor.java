@@ -23,6 +23,7 @@ public class EnterTableRequestProcessor implements MahjongProcessor<EnterTableRe
             response.setResult(false);
             response.setMsg("房间不存在");
             MsgUtils.send(response);
+            return;
         }
 
         // 检查桌子是不是满了
@@ -31,6 +32,7 @@ public class EnterTableRequestProcessor implements MahjongProcessor<EnterTableRe
             response.setResult(false);
             response.setMsg("房间已满，请加入其他房间");
             MsgUtils.send(response);
+            return;
         }
 
         // 加入桌子
