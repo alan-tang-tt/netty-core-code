@@ -1,0 +1,17 @@
+// 使用的版本
+syntax = "proto3";
+// 输出到的包名
+option java_package = "com.imooc.netty.core.$34.proto";
+// 是否拆分成多个文件
+option java_multiple_files = true;
+
+// HelloRequest
+message HelloRequest {
+    string name = 1;
+}
+
+// HelloResponse
+message HelloResponse {
+    bool result = 1;
+    string message = 2;
+}
