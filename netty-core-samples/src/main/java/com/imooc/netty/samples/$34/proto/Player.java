@@ -4,21 +4,17 @@
 package com.imooc.netty.samples.$34.proto;
 
 /**
- * <pre>
- * HelloRequest
- * </pre>
- *
- * Protobuf type {@code HelloRequest}
+ * Protobuf type {@code Player}
  */
-public  final class HelloRequest extends
+public  final class Player extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:HelloRequest)
-    HelloRequestOrBuilder {
-  // Use HelloRequest.newBuilder() to construct.
-  private HelloRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+    // @@protoc_insertion_point(message_implements:Player)
+    PlayerOrBuilder {
+  // Use Player.newBuilder() to construct.
+  private Player(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private HelloRequest() {
+  private Player() {
     name_ = "";
   }
 
@@ -27,7 +23,7 @@ public  final class HelloRequest extends
   getUnknownFields() {
     return com.google.protobuf.UnknownFieldSet.getDefaultInstance();
   }
-  private HelloRequest(
+  private Player(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -66,14 +62,14 @@ public  final class HelloRequest extends
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return Hello.internal_static_HelloRequest_descriptor;
+    return Hello.internal_static_Player_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return Hello.internal_static_HelloRequest_fieldAccessorTable
+    return Hello.internal_static_Player_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            HelloRequest.class, HelloRequest.Builder.class);
+            Player.class, Player.Builder.class);
   }
 
   public static final int NAME_FIELD_NUMBER = 1;
@@ -145,10 +141,10 @@ public  final class HelloRequest extends
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof HelloRequest)) {
+    if (!(obj instanceof Player)) {
       return super.equals(obj);
     }
-    HelloRequest other = (HelloRequest) obj;
+    Player other = (Player) obj;
 
     boolean result = true;
     result = result && getName()
@@ -170,58 +166,58 @@ public  final class HelloRequest extends
     return hash;
   }
 
-  public static HelloRequest parseFrom(
+  public static Player parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static HelloRequest parseFrom(
+  public static Player parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static HelloRequest parseFrom(byte[] data)
+  public static Player parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static HelloRequest parseFrom(
+  public static Player parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static HelloRequest parseFrom(java.io.InputStream input)
+  public static Player parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static HelloRequest parseFrom(
+  public static Player parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static HelloRequest parseDelimitedFrom(java.io.InputStream input)
+  public static Player parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static HelloRequest parseDelimitedFrom(
+  public static Player parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static HelloRequest parseFrom(
+  public static Player parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static HelloRequest parseFrom(
+  public static Player parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -233,7 +229,7 @@ public  final class HelloRequest extends
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(HelloRequest prototype) {
+  public static Builder newBuilder(Player prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -248,29 +244,25 @@ public  final class HelloRequest extends
     return builder;
   }
   /**
-   * <pre>
-   * HelloRequest
-   * </pre>
-   *
-   * Protobuf type {@code HelloRequest}
+   * Protobuf type {@code Player}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:HelloRequest)
-          HelloRequestOrBuilder {
+      // @@protoc_insertion_point(builder_implements:Player)
+          PlayerOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return Hello.internal_static_HelloRequest_descriptor;
+      return Hello.internal_static_Player_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return Hello.internal_static_HelloRequest_fieldAccessorTable
+      return Hello.internal_static_Player_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              HelloRequest.class, HelloRequest.Builder.class);
+              Player.class, Player.Builder.class);
     }
 
-    // Construct using com.imooc.netty.core.$34.proto.HelloRequest.newBuilder()
+    // Construct using com.imooc.netty.core.$34.proto.Player.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -294,23 +286,23 @@ public  final class HelloRequest extends
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return Hello.internal_static_HelloRequest_descriptor;
+      return Hello.internal_static_Player_descriptor;
     }
 
-    public HelloRequest getDefaultInstanceForType() {
-      return HelloRequest.getDefaultInstance();
+    public Player getDefaultInstanceForType() {
+      return Player.getDefaultInstance();
     }
 
-    public HelloRequest build() {
-      HelloRequest result = buildPartial();
+    public Player build() {
+      Player result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public HelloRequest buildPartial() {
-      HelloRequest result = new HelloRequest(this);
+    public Player buildPartial() {
+      Player result = new Player(this);
       result.name_ = name_;
       onBuilt();
       return result;
@@ -343,16 +335,16 @@ public  final class HelloRequest extends
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof HelloRequest) {
-        return mergeFrom((HelloRequest)other);
+      if (other instanceof Player) {
+        return mergeFrom((Player)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(HelloRequest other) {
-      if (other == HelloRequest.getDefaultInstance()) return this;
+    public Builder mergeFrom(Player other) {
+      if (other == Player.getDefaultInstance()) return this;
       if (!other.getName().isEmpty()) {
         name_ = other.name_;
         onChanged();
@@ -369,11 +361,11 @@ public  final class HelloRequest extends
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      HelloRequest parsedMessage = null;
+      Player parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (HelloRequest) e.getUnfinishedMessage();
+        parsedMessage = (Player) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -462,39 +454,39 @@ public  final class HelloRequest extends
     }
 
 
-    // @@protoc_insertion_point(builder_scope:HelloRequest)
+    // @@protoc_insertion_point(builder_scope:Player)
   }
 
-  // @@protoc_insertion_point(class_scope:HelloRequest)
-  private static final HelloRequest DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:Player)
+  private static final Player DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new HelloRequest();
+    DEFAULT_INSTANCE = new Player();
   }
 
-  public static HelloRequest getDefaultInstance() {
+  public static Player getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  private static final com.google.protobuf.Parser<HelloRequest>
-      PARSER = new com.google.protobuf.AbstractParser<HelloRequest>() {
-    public HelloRequest parsePartialFrom(
+  private static final com.google.protobuf.Parser<Player>
+      PARSER = new com.google.protobuf.AbstractParser<Player>() {
+    public Player parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-        return new HelloRequest(input, extensionRegistry);
+        return new Player(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<HelloRequest> parser() {
+  public static com.google.protobuf.Parser<Player> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<HelloRequest> getParserForType() {
+  public com.google.protobuf.Parser<Player> getParserForType() {
     return PARSER;
   }
 
-  public HelloRequest getDefaultInstanceForType() {
+  public Player getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

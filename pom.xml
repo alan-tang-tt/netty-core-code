@@ -9,8 +9,9 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>netty-mahjong-1.0</module>
         <module>netty-core-samples</module>
+        <module>netty-mahjong-1.0</module>
+        <module>netty-mahjong-2.0</module>
     </modules>
 
     <properties>

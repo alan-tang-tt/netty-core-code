@@ -1,0 +1,182 @@
+// 使用的版本
+syntax = "proto3";
+// 输出到的包名
+option java_package = "com.imooc.netty.mahjong.common.proto";
+// 是否拆分成多个文件
+option java_multiple_files = true;
+
+message PlayerMsg {
+    /**
+     * 唯一标识id
+     */
+    int64 id = 1;
+    /**
+     * 用户名
+     */
+    string username = 2;
+    /**
+     * 密码
+     */
+    string password = 3;
+    /**
+     * 玩家的积分
+     */
+    int32 score = 4;
+    /**
+     * 玩家在房间的位置
+     */
+    int32 pos = 5;
+    /**
+     * 手牌列表
+     */
+    bytes cards = 6;
+    /**
+     * 打出的牌
+     */
+    bytes chuCards = 7;
+    /**
+     * 碰的牌
+     */
+    bytes pengList = 8;
+    /**
+     * 杠的牌
+     */
+    bytes gangList = 9;
+}
+
+message RoomMsg {
+    /**
+     * 房间id
+     */
+    int64 id = 1;
+    /**
+     * 房间最大的人数
+     */
+    int32 maxPlayerNum = 2;
+    /**
+     * 底分
+     */
+    int32 baseScore = 3;
+    /**
+     * 房间内的玩家列表
+     */
+    repeated PlayerMsg players = 4;
+    /**
+     * 未摸的牌
+     */
+    bytes remainCards = 5;
+    /**
+     * 出牌玩家的位置
+     */
+    int32 chuPos = 6;
+    /**
+     * 状态
+     */
+    RoomStatus status = 7;
+}
+
+enum RoomStatus {
+
+    /**
+     * 等待其他玩家进入房间
+     */
+    STATUS_WAITING_PLAYER = 0;
+    /**
+     * 游戏开始
+     */
+    STATUS_GAME_STARTING = 1;
+    /**
+     * 等待玩家出牌
+     */
+    STATUS_WAITING_CHU = 2;
+    /**
+     * 等待其他玩家操作（碰、杠、胡）
+     */
+    STATUS_WAITING_OPERATION = 3;
+    /**
+     * 游戏结束
+     */
+    STATUS_GAME_OVER = 4;
+}
+
+message CreateRoomRequest {
+    int32 playerNum = 1;
+    int32 baseScore = 2;
+}
+
+message CreateRoomResponse {
+    bool result = 1;
+    string message = 2;
+}
+
+message EnterRoomRequest {
+    int64 roomId = 1;
+}
+
+message EnterRoomResponse {
+    bool result = 1;
+    string message = 2;
+}
+
+message GameOverNotification {
+    RoomMsg room = 1;
+}
+
+message HelloRequest {
+    string name = 1;
+}
+
+message HelloResponse {
+    string message = 1;
+}
+
+message LoginRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    bool result = 1;
+    PlayerMsg player = 2;
+    string message = 3;
+}
+
+message OperationNotification {
+    int32 operation = 1;
+    int32 pos = 2;
+    int32 fireCard = 3;
+}
+
+message OperationRequest {
+    int32 operation = 1;
+    int32 pos = 2;
+    int32 card = 3;
+}
+
+message OperationResultNotification {
+    int32 operation = 1;
+    int32 pos = 2;
+    int32 card = 3;
+}
+
+message RoomRefreshNotification {
+    int32 operation = 1;
+    RoomMsg room = 2;
+}
+
+message SettlementNotification {
+    repeated int32 scores = 1;
+}
+
+message StartGameMessage {
+}
+
+
+
+
+
+
+
+
+
+

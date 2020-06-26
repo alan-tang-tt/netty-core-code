@@ -3,8 +3,8 @@
 
 package com.imooc.netty.samples.$34.proto;
 
-public interface HelloRequestOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:HelloRequest)
+public interface PlayerOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:Player)
     com.google.protobuf.MessageOrBuilder {
 
   /**

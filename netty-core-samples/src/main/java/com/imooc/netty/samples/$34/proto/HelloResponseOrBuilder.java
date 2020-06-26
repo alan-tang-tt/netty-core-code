@@ -4,22 +4,34 @@
 package com.imooc.netty.samples.$34.proto;
 
 public interface HelloResponseOrBuilder extends
-        // @@protoc_insertion_point(interface_extends:HelloResponse)
-        com.google.protobuf.MessageOrBuilder {
+    // @@protoc_insertion_point(interface_extends:HelloResponse)
+    com.google.protobuf.MessageOrBuilder {
 
-    /**
-     * <code>optional bool result = 1;</code>
-     */
-    boolean getResult();
+  /**
+   * <code>optional bool result = 1;</code>
+   */
+  boolean getResult();
 
-    /**
-     * <code>optional string message = 2;</code>
-     */
-    String getMessage();
+  /**
+   * <code>optional string message = 2;</code>
+   */
+  java.lang.String getMessage();
+  /**
+   * <code>optional string message = 2;</code>
+   */
+  com.google.protobuf.ByteString
+      getMessageBytes();
 
-    /**
-     * <code>optional string message = 2;</code>
-     */
-    com.google.protobuf.ByteString
-    getMessageBytes();
+  /**
+   * <code>optional .Player player = 3;</code>
+   */
+  boolean hasPlayer();
+  /**
+   * <code>optional .Player player = 3;</code>
+   */
+  Player getPlayer();
+  /**
+   * <code>optional .Player player = 3;</code>
+   */
+  PlayerOrBuilder getPlayerOrBuilder();
 }

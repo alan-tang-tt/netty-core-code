@@ -1,6 +1,6 @@
 package com.imooc.netty.samples.$999.client.codec;
 
-import com.imooc.netty.samples.$999.common.protocol.mahjong.ResponseMahjongProtocol;
+import com.imooc.netty.samples.$999.common.protocol.mahjong.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;

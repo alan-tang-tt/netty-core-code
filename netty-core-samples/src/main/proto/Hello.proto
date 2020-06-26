@@ -14,4 +14,9 @@ message HelloRequest {
 message HelloResponse {
     bool result = 1;
     string message = 2;
+    Player player = 3;
+}
+
+message Player {
+    string name = 1;
 }
