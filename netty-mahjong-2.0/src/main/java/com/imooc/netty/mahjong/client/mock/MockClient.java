@@ -299,7 +299,7 @@ public class MockClient {
             } catch (Exception e) {
                 // just ignore
             }
-            System.out.println("\r\n错误的输入，请重新输入：");
+            System.out.println("\r\n错误的输入，请重新输入："+MOCK_USER);
         }
     }
 

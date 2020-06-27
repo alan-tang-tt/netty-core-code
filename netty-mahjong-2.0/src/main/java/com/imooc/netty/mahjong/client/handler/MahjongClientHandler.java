@@ -27,4 +27,9 @@ public class MahjongClientHandler extends SimpleChannelInboundHandler<MahjongPro
             log.error("not found render, msgType={}", message.getClass().getName());
         }
     }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        log.error("something error", cause);
+    }
 }

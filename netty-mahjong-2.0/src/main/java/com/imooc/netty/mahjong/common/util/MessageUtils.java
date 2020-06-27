@@ -11,6 +11,10 @@ import com.imooc.netty.mahjong.common.proto.RoomRefreshNotification;
 import com.imooc.netty.mahjong.common.protocol.MahjongProtocol;
 import com.imooc.netty.mahjong.common.protocol.MahjongProtocolHeader;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
+import io.netty.util.concurrent.Promise;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -181,7 +185,13 @@ public class MessageUtils {
 
     private static void send(Channel channel, MahjongProtocol mahjongProtocol) {
         if (channel != null && channel.isActive() && channel.isWritable()) {
-            channel.writeAndFlush(mahjongProtocol);
+            ChannelFuture channelFuture = channel.writeAndFlush(mahjongProtocol);
+            // 添加监听器，发送失败时打印日志
+            channelFuture.addListener(future -> {
+                if (!future.isSuccess()) {
+                    log.error("send message error", future.cause());
+                }
+            });
         } else {
             log.error("channel unavailable, channelId={}, msgType={}", channel.id(), ((MessageLite) mahjongProtocol.getBody()).getClass());
         }
