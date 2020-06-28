@@ -25,6 +25,6 @@ public class MetricsUtils {
 
         // 打印到控制台
         ConsoleReporter consoleReporter = ConsoleReporter.forRegistry(metricRegistry).build();
-        consoleReporter.start(5, TimeUnit.SECONDS);
+//        consoleReporter.start(5, TimeUnit.SECONDS);
     }
 }
