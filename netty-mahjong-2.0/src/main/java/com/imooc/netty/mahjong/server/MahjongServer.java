@@ -9,6 +9,9 @@ import com.imooc.netty.mahjong.server.handler.ServerIdleCheckHandler;
 import com.imooc.netty.mahjong.server.util.MetricsUtils;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -40,8 +43,8 @@ public class MahjongServer {
         System.out.println(ssc.certificate().getPath());
 
         // 1. 声明线程池
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        EventLoopGroup bossGroup = Epoll.isAvailable()? new EpollEventLoopGroup(1) : new NioEventLoopGroup(1);
+        EventLoopGroup workerGroup = Epoll.isAvailable()? new EpollEventLoopGroup() : new NioEventLoopGroup();
         try {
 
             final LoggingHandler loggingHandler = new LoggingHandler(LogLevel.INFO);
@@ -64,7 +67,7 @@ public class MahjongServer {
             // 3. 设置线程池
             serverBootstrap.group(bossGroup, workerGroup)
                     // 4. 设置ServerSocketChannel的类型
-                    .channel(NioServerSocketChannel.class)
+                    .channel(Epoll.isAvailable()? EpollServerSocketChannel.class : NioServerSocketChannel.class)
                     // 5. 设置参数
                     .option(ChannelOption.SO_BACKLOG, 100)
                     // 6. 设置ServerSocketChannel对应的Handler，只能设置一个
