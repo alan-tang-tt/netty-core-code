@@ -1,3 +1,3 @@
 # netty-core-code
 
-《Netty核心技术：从入门到实战》代码仓库
+慕课网《Netty核心技术与实战》代码仓库
