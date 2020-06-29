@@ -13,6 +13,7 @@ import java.util.List;
 public class BinaryWebSocketFrameEncoder extends MessageToMessageEncoder<ByteBuf> {
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+//        ReferenceCountUtil.retain(msg);
         ReferenceCountUtil.retain(msg);
         BinaryWebSocketFrame binaryWebSocketFrame = new BinaryWebSocketFrame(msg);
         out.add(binaryWebSocketFrame);

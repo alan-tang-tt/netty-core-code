@@ -26,10 +26,18 @@ public class MockClient {
     public static void start(Channel channel) {
         MahjongContext.currentContext().setCurrentChannel(channel);
         // 发送hello消息
-        HelloRequest helloRequest = HelloRequest.newBuilder()
-                .setName("彤哥")
-                .build();
-        MessageUtils.sendRequest(helloRequest);
+//        for (int i = 0; i < 1000; i++) {
+            HelloRequest helloRequest = HelloRequest.newBuilder()
+                    .setName("彤哥")
+                    .build();
+            MessageUtils.sendRequest(helloRequest);
+//            try {
+//                TimeUnit.MILLISECONDS.sleep(10);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
+
 
         // 停顿2秒
         LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(2));

@@ -20,11 +20,8 @@ public class MetricsUtils {
         metricRegistry.register("maxDirectMemory"
                 , (Gauge<Long>) () -> PlatformDependent.maxDirectMemory());
 
-        metricRegistry.register("all"
-                , (Gauge<String>)()-> PooledByteBufAllocator.DEFAULT.metric().toString());
-
         // 打印到控制台
         ConsoleReporter consoleReporter = ConsoleReporter.forRegistry(metricRegistry).build();
-//        consoleReporter.start(5, TimeUnit.SECONDS);
+        consoleReporter.start(1, TimeUnit.SECONDS);
     }
 }
